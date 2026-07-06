@@ -1,0 +1,52 @@
+{
+  "recommendations": [
+
+    // =========================
+    // UI / Productivity
+    // =========================
+    "pkief.material-icon-theme",
+    "aaron-bond.better-comments",
+    "bracketpaircolordlw.bracket-pair-color-dlw",
+    "eamodio.gitlens",
+
+    // =========================
+    // Markdown / Documentation
+    // =========================
+    "davidanson.vscode-markdownlint",
+    "gera2ld.markmap-vscode",
+
+    // =========================
+    // AI
+    // =========================
+    "github.copilot-chat",
+
+    // =========================
+    // Next.js / React / TypeScript
+    // =========================
+    "bradlc.vscode-tailwindcss",
+    "christian-kohler.npm-intellisense",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "formulahendry.auto-rename-tag",
+    "dsznajder.es7-react-js-snippets",
+    "xabikos.javascriptsnippets",
+
+    // =========================
+    // Backend / API
+    // =========================
+    "mongodb.mongodb-vscode",
+    "rangav.vscode-thunder-client",
+
+    // =========================
+    // Containers / Remote Development
+    // =========================
+    "ms-azuretools.vscode-docker",
+    "ms-vscode-remote.remote-containers",
+    "ms-vscode-remote.remote-wsl",
+
+    // =========================
+    // Astro (only if you build Astro projects)
+    // =========================
+    "astro-build.astro-vscode"
+  ],
+}
