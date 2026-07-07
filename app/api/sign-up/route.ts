@@ -1,19 +1,28 @@
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/model/User";
-import { sendVefificationEmail } from "@/utils/sendVerificationEmail";
+import sendVerificationEmail from "@/utils/sendVerificationEmail";
 
 import bcrypt from "bcryptjs";
-import { success } from "zod";
-import { fa } from "zod/locales";
 
-//Request, is coming from next.js
-export async function POST(req: Request) {
-  await dbConnect()
 
+//* otp Genration
+const generateOTP = () => {
+  const MIN_OTP = 100000;
+  const MAX_OTP = 999999;
+  const generatedOTP = Math.floor(Math.random() * (MAX_OTP - MIN_OTP + 1) + MIN_OTP);
+  return generatedOTP.toString();
+}
+
+//Funtion to acknoledge Reqest from frontend and send back response
+export async function POST(req: Request) { //* Request if from nextjs
   try {
+    await dbConnect()
+    
+    ///* It's coming from the HTTP request body sent by the frontend.
     const {username, email, password} = await req.json();
 
-    //* is this user is presentANDverifed
+
+    //* IS THIS USER IS ALREADY IN DATABASE && IS THIS USER IS VERFIED
     const existingUserVerifiedByUsername = await UserModel.findOne({
       username,
       isVerified: true
@@ -23,17 +32,24 @@ export async function POST(req: Request) {
       return Response.json(
         {
           success: false,
-          message: 'Username is already Taken'
+          //todo: QUES: can this be possible that username is taken but not verified
+          message: 'Username is already Taken OR not verified'
         },
         {status: 400,}
       )
     }
 
+
+    /*
+    //* SURELY USER IS IN DATABASE
+    //* BUT USER IS NOT VERIFIED
+    */
     const existingUserByEmail = await UserModel.findOne({
       email,
     })
-    //verification code gen
-    const verifyCode = Math.floor(100000+Math.random()* 900000).toString();
+
+    //* generating verification code
+    const verifyCode = generateOTP();
 
     if(existingUserByEmail){
       if(existingUserByEmail.isVerified){
@@ -46,13 +62,17 @@ export async function POST(req: Request) {
         )
       }else{
         const hashedPassword = await bcrypt.hash(password, 10);
+
+        // updating details
         existingUserByEmail.password = hashedPassword
         existingUserByEmail.verifyCode = verifyCode
         existingUserByEmail.verifyCodeExpiry = new Date(Date.now()+3600000);
 
         await existingUserByEmail.save();
       }
-    }else{ //*first time user have comed
+
+    //* USER HAS COME FIRST TIME 
+    }else{
       const hashedPassword = await bcrypt.hash(password, 10);
       const expiryDate = new Date()
       expiryDate.setHours(expiryDate.getHours() + 1);
@@ -70,8 +90,9 @@ export async function POST(req: Request) {
 
       await newUser.save();
     }
-    //now send verification email
-    const emailResponse = await sendVefificationEmail(
+
+    //* NOW SEDING VERIFICATION CODE TO USER
+    const emailResponse = await sendVerificationEmail(
       email,
       username,
       verifyCode,
@@ -96,8 +117,8 @@ export async function POST(req: Request) {
     )
 
   } catch (error) {
-    console.log("Error Regenstering User",error);
-    //* See Standerisation
+    console.log(`Error on Registering User: Error Code : ${error}`);
+
     return Response.json(
       {
         success: false,
@@ -109,5 +130,3 @@ export async function POST(req: Request) {
     )
   }
 }
-
-//stop now timelapse

@@ -7,28 +7,29 @@ type ConnectionObject = {
 
 const connection: ConnectionObject = {}
 
-//* Void in cpp is diffrent from void here {yeha pe muje parva nahi hai ki kis tarha ka datatype ara hai}
 async function dbConnect(): Promise<void> {
 
-  //* Optimisation for doudging Choking and performence issue
+  // Check if we have a connection to the database or not
   if(connection.isConnected){
     console.log("Already Connected To Database");
     return;
   }
 
+  // Trying to Connect with Mongodb Database
   try {
-    //todo: Empty hadingling req
-    const db = await mongoose.connect(process.env.MONGO_DB_URI || '', {});
+    const db = await mongoose.connect(process.env.MONGO_DB_URI || '');
 
-    //* check for reading/expore
+    //todo: just see this console for learning purposes
     console.log(db);
-    connection.isConnected = db.connections[0].readyState;
-    console.log(connection.isConnected);
+
+    //* pointing to defeat  connection { db.connections[0] }
+    connection.isConnected = db.connection.readyState;
+    console.log(`Connection State of isConnected : ${connection.isConnected}`);
 
     console.log("Database COnnected Sucessfuly");
 
-  } catch (error) {
-    console.error("Databse cannection Failded", error);
+  } catch (dbConnetionError) {
+    console.error(`Database Connection Failded : ErrorString - ${dbConnetionError}`);
     process.exit(1);
   }
 }

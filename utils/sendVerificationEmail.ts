@@ -3,11 +3,11 @@ import { resend } from '@/lib/resend';
 import { ApiResponse } from '@/types/ApiResponse';
 
 
-export async function sendVefificationEmail(
-  email:string,
-  username:string,
-  verifyCode:string,
-): Promise<ApiResponse> {
+export default async function sendVerificationEmail(
+    email:string,
+    username:string,
+    verifyCode:string,
+  ): Promise<ApiResponse> { 
 
   try {
     //todo: Some is hardcoded
@@ -16,7 +16,7 @@ export async function sendVefificationEmail(
       from: 'onboarding@resend.dev',
       to: email,
       subject: 'Mystry message| Verification',
-      //? this is funition teachnicaly althoug component
+      //? this is function technically but in code its Component or page
       react: VerificationEmail({ username: username, otp: verifyCode }),
     });
 
@@ -28,6 +28,9 @@ export async function sendVefificationEmail(
       };
     }
 
+    //* conosling the sucess
+    console.log(`Verification is Sended : Successcode: ${data}`)
+
     return {
       success: true,
       message: "Verification email sent successfully.",
@@ -38,7 +41,7 @@ export async function sendVefificationEmail(
     return {
       success: false,
       message:
-        emailError instanceof Error ? emailError.message : "Unknown error",
+        emailError instanceof Error ? emailError.message : String(emailError),
     };
   }
 }

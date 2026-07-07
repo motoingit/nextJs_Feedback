@@ -1,26 +1,5 @@
 import mongoose, {Schema, Document} from "mongoose";
-
-
-// this is what typescipt is making of
-// Model for Message
-export interface Message extends Document{
-  content: string;
-  createdAt: Date;
-}
-
-const MessageSchema: Schema<Message> = new mongoose.Schema({
-  content: {
-    type: String, //! in mongose String not string
-    required: true,
-  },
-
-  createdAt:{
-    type: Date,
-    required: true, //todo: do i need this if i have defualt
-    default: Date.now,
-  },
-});
-
+import {MessageSchema, Message} from "./Message";
 
 
 // Model for User
@@ -35,7 +14,9 @@ export interface User extends Document{
   messages: Message[]
 }
 
+//Implementing UserSchema
 const UserSchema: Schema<User> = new mongoose.Schema({
+  //* username is Identifier here
   username:{
     type: String,
     required: [true, "Username is Required"],
@@ -57,12 +38,12 @@ const UserSchema: Schema<User> = new mongoose.Schema({
 
   verifyCode: {
     type: String,
-    required: [true, "Verify Code is Required"], 
+    required: [true, "Verification Code (OTP) is Required"], 
   },
 
   verifyCodeExpiry: {
     type: Date,
-    required: [true, "Expiry Date of VERIFYCODE is Required"],
+    required: [true, "Expiry Date for OTP is Required"],
   },
 
   isVerified: {
@@ -75,14 +56,11 @@ const UserSchema: Schema<User> = new mongoose.Schema({
     default:true,
   },
 
-  //* imp
+  //* Array of type MessageSchema
   messages: [MessageSchema],
 })
 
-
-//todo: Know More [https://youtu.be/g1iqZpXklnY?list=PLu71SKxNbfoBAaWGtn9GA2PTw0HO0tXzq&t=1192]
-//* banahua hai to use use karo ?? nahi tho new banao
+//* If Already Created at database then use that || Else Create one
 const UserModel = (mongoose.models.User as mongoose.Model<User>) 
                 ?? mongoose.model<User>("User", UserSchema)
-
 export default UserModel;
