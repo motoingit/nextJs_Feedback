@@ -24,13 +24,21 @@ An Anonymous Feedback platform built with **Next.js 16**, **TypeScript**, **Mong
 
 ``` md
   ├── app/
+  │   ├── api/
+  │   │   └── sign-up/
+  │   │       └── route.ts
   │   ├── favicon.ico
   │   ├── globals.css
   │   ├── layout.tsx
   │   └── page.tsx
   │
+  ├── components/
+  │   └── email/
+  │       └── VerificationEmail.tsx
+  │
   ├── lib/
-  │   └── dbConnect.ts
+  │   ├── dbConnect.ts
+  │   └── resend.ts
   │
   ├── model/
   │   └── User.ts
@@ -41,6 +49,12 @@ An Anonymous Feedback platform built with **Next.js 16**, **TypeScript**, **Mong
   │   ├── signInSchema.ts
   │   ├── signUpSchema.ts
   │   └── verifySchema.ts
+  │
+  ├── types/
+  │   └── ApiResponse.ts
+  │
+  ├── utils/
+  │   └── sendVerificationEmail.ts
   │
   ├── public/
   ├── .env
@@ -106,15 +120,49 @@ schemas/
 
 ---
 
+### Email Verification Setup
+
+- Verification Email Component with React-Email
+- Reusable Resend Client Setup
+- Verification Email Sending Utility
+
+```
+components/email/VerificationEmail.tsx
+lib/resend.ts
+utils/sendVerificationEmail.ts
+```
+
+---
+
+### Authentication & User API
+
+- Sign Up Route Handler (`POST`)
+- Password Hashing (using `bcryptjs`)
+- OTP Verification Code Generation & Persistent Expiry
+
+```
+app/api/sign-up/route.ts
+```
+
+---
+
+### Types & Interfaces
+
+- Custom Standardized `ApiResponse` interface
+
+```
+types/ApiResponse.ts
+```
+
+---
+
 # 🚧 Currently Working On
 
-- Authentication
-- API Routes
-- User Registration
-- Login
-- Email Verification
-- Anonymous Messaging
-- Dashboard
+- Authentication (NextAuth Integration for Sign-In)
+- User OTP/Verification Code Verification API Route
+- Toggle Accept Message API Route
+- User Dashboard & Public Profile
+- Anonymous Feedback Submission API
 
 ---
 
@@ -127,6 +175,9 @@ schemas/
 | TypeScript | Language |
 | MongoDB | Database |
 | Zod | Validation |
+| Resend | Email Service |
+| React Email | Email Styling |
+| Bcryptjs | Password Hashing |
 | ESLint | Linting |
 | PostCSS | Styling |
 
@@ -134,8 +185,8 @@ schemas/
 
 # 📅 Upcoming Features
 
-- User Authentication
-- Email Verification
+- User Sign-In (NextAuth integration)
+- OTP Verification API (Verify Email)
 - Anonymous Feedback Submission
 - Public Profile Page
 - User Dashboard
@@ -207,9 +258,10 @@ http://localhost:3000
 | MongoDB Setup | ✅ |
 | User Model | ✅ |
 | Zod Schemas | ✅ |
-| Authentication | 🚧 |
-| API Routes | 🚧 |
-| Email Verification | 🚧 |
+| Sign-Up API | ✅ |
+| Email Verification Setup | ✅ |
+| Sign-In (NextAuth) | 🚧 |
+| OTP Verification Route | 🚧 |
 | Anonymous Messages | 🚧 |
 | Dashboard | 🚧 |
 | Deployment | ⏳ |

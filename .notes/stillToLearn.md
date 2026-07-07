@@ -40,3 +40,17 @@ Next.js
 - Node Runtime supports Node.js APIs.
 - Edge Runtime has faster startup times.
 - Choose the runtime based on your application's requirements.
+
+---
+
+# Email Sender
+
+## Node Mailer
+
+---
+
+## resend email
+
+---
+
+# Database connnection har ek route pe lagta hai kyuki nextjs edge pe chalta hai
