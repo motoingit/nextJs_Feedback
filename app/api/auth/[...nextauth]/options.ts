@@ -54,6 +54,7 @@ export const authOptions: NextAuthOptions = {
         //TODO: RECHECK
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
+          console.log("new Error is Here Bro")
            throw new Error(error);
         }
       },

@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.0.10",
     "bcryptjs": "^3.0.3",
+    "mongodb": "^7.4.0",
     "mongoose": "^9.7.3",
     "next": "16.2.10",
     "next-auth": "^4.24.14",

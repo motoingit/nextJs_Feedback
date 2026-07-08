@@ -346,3 +346,58 @@ proxy.ts{
   
 }
 ```
+# note1
+
+``` txt
+                  // data extract when frontend sends data from url
+//This will give whole URL - {http://localhost:3000/api/cuu?username?phone=android}
+    const {searchParams} = new URL(req.url)
+    const queryParam = {
+      username: searchParams.get('username')
+    }
+
+
+                        //when frontend sends the json
+  const {username, code} = await req.json()                    
+```
+# note1
+
+``` txt
+    //This will give whole URL - {http://localhost:3000/api/cuu?username?phone=android}
+    const {searchParams} = new URL(req.url)
+    const queryParam = {
+      username: searchParams.get('username')
+    }
+
+
+
+
+    above we are just using   {new URL(req.url)}  but we should use the "decodeURIComponent(username)"  for this
+    ans manytime '.' == '%20' in url             
+```
+# note1
+
+``` txt
+    Then:
+
+const url = new URL(req.url);
+
+const username = url.searchParams.get("username");
+
+Although URLSearchParams already decodes values automatically in modern JavaScript, if you manually work with encoded URL parts, decodeURIComponent() is useful.
+
+
+https://chatgpt.com/s/t_6a4df4d9612c8191bdc8226c02980145
+```
+# note1
+
+``` txt
+That format is the standard ISO 8601 UTC date-time format.
+
+databse:
+2026-07-07T23:08:21.188+00:00
+
+here
+2026-07-08T08:22:19.666Z
+
+```

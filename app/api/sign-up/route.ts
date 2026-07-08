@@ -110,10 +110,10 @@ export async function POST(req: Request) { //* Request if from nextjs
 
     return Response.json(
       {
-        success: false,
+        success: true,
         message: 'Username is Registerd Sucessfully'
       },
-      {status: 400,}
+      {status: 201,}
     )
 
   } catch (error) {
@@ -122,7 +122,7 @@ export async function POST(req: Request) { //* Request if from nextjs
     return Response.json(
       {
         success: false,
-        message: 'Errro regestering user'
+        message: 'Errror on regestering user'
       },
       {
         status:500
