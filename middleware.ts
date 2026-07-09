@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 
-//for now ignore this = "Clean up duplicate export { default } declaration to prevent any Next.js runtime confusion"
 export { default } from 'next-auth/middleware';
 
 //! Middleware is like "Jane se pehele milke jana"

@@ -4,7 +4,6 @@ import { apiResponse } from "@/utils/returnResponse";
 import sendVerificationEmail from "@/utils/sendVerificationEmail";
 
 import bcrypt from "bcryptjs";
-import { userAgent } from "next/server";
 
 
 //* otp Genration
@@ -19,9 +18,9 @@ const generateOTP = () => {
 export async function POST(req: Request) {
   console.log("📝 POST /api/sign-up request received");
 
-  await dbConnect();
-  
   try {
+    await dbConnect();
+
     // Extract sign up parameters from the request body
     const { username, email, password } = await req.json();
     console.log(`📋 Received sign-up request details: Username="${username}", Email="${email}"`);
@@ -134,9 +133,23 @@ export async function POST(req: Request) {
     );
 
   } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes("E11000 duplicate key error")
+    ) {
+      console.warn(`⚠️ Duplicate key detected during sign-up: ${error.message}`);
+
+      return Response.json(
+        {
+          success: false,
+          message: 'Username or email is already in use',
+        },
+        { status: 400 }
+      );
+    }
+
     console.error(`❌ Fatal error during user registration process:`, error);
-    
-    //todo: custm implemented
+
     return apiResponse(
       false,
       "Error registering user",

@@ -20,7 +20,8 @@
       }
     ],
 
-    /* Path Optimisation
+    
+    /*info: Path Optimisation
           ///! to   import Navbar from "@/components/Navbar";
           ///? from import Navbar from "../../components/Navbar";
     */

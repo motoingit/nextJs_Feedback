@@ -31,7 +31,7 @@ async function dbConnect(): Promise<void> {
     console.log(
       chalk.green("[SUCCESS]"),
       ">",
-      "Using cached MongoDB connection."
+      "Using Already Connected MongoDB connection."
     );
 
     return;

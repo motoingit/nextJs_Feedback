@@ -18,6 +18,25 @@ export default async function sendVerificationEmail(
   ): Promise<ApiResponse> { 
   console.log(`📧 Attempting to dispatch verification email to: ${email} (username: ${username})`);
 
+  const verifiedTestRecipient = process.env.RESEND_VERIFIED_TO_EMAIL;
+
+  if (
+    verifiedTestRecipient &&
+    email !== verifiedTestRecipient &&
+    process.env.RESEND_API_KEY
+  ) {
+    const message =
+      `Resend test mode only allows sending to ${verifiedTestRecipient}. ` +
+      `Set RESEND_VERIFIED_TO_EMAIL to your verified address, or verify a domain to send to other recipients.`;
+
+    console.warn(`⚠️ ${message}`);
+
+    return {
+      success: false,
+      message,
+    };
+  }
+
   try {
     // Send email via Resend API using the React component template
     const { data, error } = await resend.emails.send({
