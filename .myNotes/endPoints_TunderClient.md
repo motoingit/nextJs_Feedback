@@ -1,4 +1,0 @@
-
-http://localhost:3000/api/check-username-unique?username=one
-
-http://localhost:3000/api/sign-in

@@ -1,2 +1,0 @@
-console.warn(`[warning-log]: LogString > ⚠️ Request format validation failed for verify-code : \x1b[31m${errorMessage}\x1b[0m`);
-
