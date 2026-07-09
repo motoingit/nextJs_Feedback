@@ -13,7 +13,6 @@
     // Markdown / Documentation
     // =========================
     "davidanson.vscode-markdownlint",
-    "gera2ld.markmap-vscode",
 
     // =========================
     // AI
@@ -28,25 +27,12 @@
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
     "formulahendry.auto-rename-tag",
-    "dsznajder.es7-react-js-snippets",
-    "xabikos.javascriptsnippets",
+    "christian-kohler.npm-intellisense",
 
     // =========================
     // Backend / API
     // =========================
     "mongodb.mongodb-vscode",
     "rangav.vscode-thunder-client",
-
-    // =========================
-    // Containers / Remote Development
-    // =========================
-    "ms-azuretools.vscode-docker",
-    "ms-vscode-remote.remote-containers",
-    "ms-vscode-remote.remote-wsl",
-
-    // =========================
-    // Astro (only if you build Astro projects)
-    // =========================
-    "astro-build.astro-vscode"
   ],
 }

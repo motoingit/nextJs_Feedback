@@ -1,0 +1,20 @@
+static for files any download
+template for html
+
+http://127.0.0.1:5000/static/filename      //can download the file
+
+
+indentation - tabs 5
+
+div.container + enter = <div class="container"></div>            //in html
+/////////////////////////////////////////////////////////
+<div class="container my-7"> 
+here my-7 and mx-7 is the space in horizontoal and 
+//////////////////////////////////////////////////////
+<div class="mb-3">
+				<label for="dese" class="form-label">TODO descrepiton </label>
+				<input type="text" class="form-control" id="dese" />
+			</div>
+
+here dese is for - FOR and ID - and both should be same
+            /////////////////////////

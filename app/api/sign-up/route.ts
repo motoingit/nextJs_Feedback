@@ -1,8 +1,10 @@
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/model/User";
+import { apiResponse } from "@/utils/returnResponse";
 import sendVerificationEmail from "@/utils/sendVerificationEmail";
 
 import bcrypt from "bcryptjs";
+import { userAgent } from "next/server";
 
 
 //* otp Genration
@@ -13,70 +15,81 @@ const generateOTP = () => {
   return generatedOTP.toString();
 }
 
-//Funtion to acknoledge Reqest from frontend and send back response
-export async function POST(req: Request) { //* Request if from nextjs
+// Function to acknowledge request from frontend and send back response
+export async function POST(req: Request) {
+  console.log("📝 POST /api/sign-up request received");
+
+  await dbConnect();
+  
   try {
-    await dbConnect()
-    
-    ///* It's coming from the HTTP request body sent by the frontend.
-    const {username, email, password} = await req.json();
+    // Extract sign up parameters from the request body
+    const { username, email, password } = await req.json();
+    console.log(`📋 Received sign-up request details: Username="${username}", Email="${email}"`);
 
-
-    //* IS THIS USER IS ALREADY IN DATABASE && IS THIS USER IS VERFIED
+    // 1. Check if the username is already taken by a verified user
     const existingUserVerifiedByUsername = await UserModel.findOne({
       username,
       isVerified: true
-    })
+    });
 
-    if(existingUserVerifiedByUsername){
+    if (existingUserVerifiedByUsername) {
+      console.warn(`⚠️ Sign-up rejected: Username "${username}" is already taken by a verified user.`);
       return Response.json(
         {
           success: false,
-          //todo: QUES: can this be possible that username is taken but not verified
-          message: 'Username is already Taken OR not verified'
+          message: 'Username is already taken'
         },
-        {status: 400,}
-      )
+        { status: 400 }
+      );
     }
 
+    // 2. Clear any unverified users holding this username with a different email.
+    // This frees the username field to avoid MongoDB E11000 unique index collisions.
+    const deletedConflicts = await UserModel.deleteMany({
+      username,
+      email: { $ne: email },
+      isVerified: false
+    });
+    if (deletedConflicts.deletedCount > 0) {
+      console.log(`🧹 Cleared ${deletedConflicts.deletedCount} unverified conflicting user account(s) using username "${username}"`);
+    }
 
-    /*
-    //* SURELY USER IS IN DATABASE
-    //* BUT USER IS NOT VERIFIED
-    */
-    const existingUserByEmail = await UserModel.findOne({
-      email,
-    })
-
-    //* generating verification code
+    // Generate a fresh 6-digit OTP code
     const verifyCode = generateOTP();
+    const expiryDate = new Date();
+    expiryDate.setHours(expiryDate.getHours() + 1); // Code expires in 1 hour
 
-    if(existingUserByEmail){
-      if(existingUserByEmail.isVerified){
+    // 3. Check if a user with this email already exists
+    const existingUserByEmail = await UserModel.findOne({ email });
+
+    if (existingUserByEmail) {
+      if (existingUserByEmail.isVerified) {
+        console.warn(`⚠️ Sign-up rejected: Email "${email}" is already registered and verified.`);
         return Response.json(
           {
             success: false,
-            message: 'User Already exist with this email'
+            message: 'User already exists with this email'
           },
-          {status: 400,}
-        )
-      }else{
+          { status: 400 }
+        );
+      } else {
+        // Email is not verified yet. Update details with new username, password, and fresh OTP
+        console.log(`🔄 Updating existing unverified user details for email "${email}"`);
+        
         const hashedPassword = await bcrypt.hash(password, 10);
-
-        // updating details
-        existingUserByEmail.password = hashedPassword
-        existingUserByEmail.verifyCode = verifyCode
-        existingUserByEmail.verifyCodeExpiry = new Date(Date.now()+3600000);
+        existingUserByEmail.username = username;
+        existingUserByEmail.password = hashedPassword;
+        existingUserByEmail.verifyCode = verifyCode;
+        existingUserByEmail.verifyCodeExpiry = expiryDate;
 
         await existingUserByEmail.save();
+        console.log(`✅ Successfully updated unverified user "${username}" in the database.`);
       }
-
-    //* USER HAS COME FIRST TIME 
-    }else{
+    } else {
+      // First-time signup. Create a brand new user document
+      console.log(`🆕 Creating a new user record for "${username}" (${email})`);
+      
       const hashedPassword = await bcrypt.hash(password, 10);
-      const expiryDate = new Date()
-      expiryDate.setHours(expiryDate.getHours() + 1);
-
       const newUser = new UserModel({
         username,
         email,
@@ -86,47 +99,49 @@ export async function POST(req: Request) { //* Request if from nextjs
         isVerified: false,
         isAcceptingMessage: true,
         messages: []
-      })
+      });
 
       await newUser.save();
+      console.log(`✅ Successfully saved new user "${username}" to the database.`);
     }
 
-    //* NOW SEDING VERIFICATION CODE TO USER
+    // 4. Dispatch the verification OTP email
+    console.log(`📧 Dispatched verification flow for "${username}" to email "${email}"`);
     const emailResponse = await sendVerificationEmail(
       email,
       username,
-      verifyCode,
-    )
+      verifyCode
+    );
 
-    if(!emailResponse.success){
+    if (!emailResponse.success) {
+      console.error(`❌ Verification email dispatch failed: ${emailResponse.message}`);
       return Response.json(
         {
           success: false,
           message: emailResponse.message,
         },
-        {status: 500,}
-      )
+        { status: 500 }
+      );
     }
 
+    console.log(`🎉 User "${username}" successfully registered and verification email sent.`);
     return Response.json(
       {
         success: true,
-        message: 'Username is Registerd Sucessfully'
+        message: 'User registered successfully. Please verify your email.'
       },
-      {status: 201,}
-    )
+      { status: 201 }
+    );
 
   } catch (error) {
-    console.log(`Error on Registering User: Error Code : ${error}`);
-
-    return Response.json(
-      {
-        success: false,
-        message: 'Errror on regestering user'
-      },
-      {
-        status:500
-      }
-    )
+    console.error(`❌ Fatal error during user registration process:`, error);
+    
+    //todo: custm implemented
+    return apiResponse(
+      false,
+      "Error registering user",
+      500,
+    );
   }
 }
+

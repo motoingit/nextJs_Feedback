@@ -1,0 +1,12 @@
+
+//In java
+Measure-Command { java classname } 
+(Measure-Command { java classname }).TotalMilliseconds
+
+//in c
+Measure-Command { ./filename.exe }
+Measure-Command { ./x162_FindPeakElement.exe }
+
+
+//
+Get-Content test_input.txt | .\UserDriven
