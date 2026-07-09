@@ -1,0 +1,117 @@
+# Debugging Logs, Comments, and Error/Blindspot Resolution Plan
+
+This plan aims to add detailed debugging console logs, descriptive comments, and fix critical/fatal design errors and blind spots across the anonymous feedback Next.js project.
+
+## User Review Required
+
+> [!IMPORTANT]
+> The following architectural and configuration issues have been identified and will be fixed as part of this plan. Please review them.
+
+1. **Authentication API Routes & Type Mismatches**:
+   - In `types/next-auth.d.ts`, `isAcceptingMessage` was typed as `string` in some places and `boolean` in others, creating type-safety issues during NextAuth session resolution. We will unify this to `boolean`.
+   - In `options.ts`, the NextAuth credentials provider had fields defined for `email`, but in the authorization flow it accessed `credentials.identifier`. This discrepancy could cause issues when processing requests. We will update the credentials key to `identifier`.
+   - The custom sign-in page redirection in `options.ts` was pointing to `/signin`, but the project's folder is `app/(auth)/sign-in/page.tsx` (accessible via `/sign-in`). This would lead to a 404 page when NextAuth redirects users. We will correct the path to `/sign-in`.
+
+2. **Username Uniqueness Route (GET vs. POST)**:
+   - In `app/api/check-username-unique/route.ts`, the route was registered as `POST`, but it retrieved search params via `new URL(req.url)`. This is typically used for `GET` requests. We will change the method to `GET` to match its logic.
+
+3. **Sign-up Duplicate Key Errors**:
+   - In `app/api/sign-up/route.ts`, a major blind spot existed: if a username was taken by an unverified user, another email registration with that username would crash with a MongoDB E11000 duplicate key error on save, returning a 500 error.
+   - Also, when an unverified email tried to sign up again with a new username, the database document kept the old username since it was never updated.
+   - We will resolve this by:
+     - Checking if the username is taken by any user (verified or unverified).
+     - Allowing updating of the username when registering again with the same unverified email.
+
+4. **Zod Validation Error Messages Configuration**:
+   - In `schemas/`, Zod validations were using `{ error: '...' }` instead of the correct syntax `{ message: '...' }`. The custom messages were ignored by Zod. We will correct these.
+   - `schemas/messageSchema.ts` was exporting `acceptMessageSchema` instead of `messageSchema`, conflicting with `schemas/acceptMessageSchema.ts`. We will rename the export.
+
+## Open Questions
+
+*No critical open questions. We will proceed with implementing the standardized debugging logs and clean comments alongside the bug fixes.*
+
+---
+
+## Proposed Changes
+
+### Configuration and Middleware
+
+#### [MODIFY] [middleware.ts](file:///e:/code/Projects/GIT-HUB/WebProjects/anonymous-feedback/middleware.ts)
+- Add request-level debugging logs mapping incoming pathname, authentication token status, and target redirection path.
+- Clean up duplicate `export { default }` declaration to prevent any Next.js runtime confusion.
+
+---
+
+### Database and Configuration Services
+
+#### [MODIFY] [dbConnect.ts](file:///e:/code/Projects/GIT-HUB/WebProjects/anonymous-feedback/lib/dbConnect.ts)
+- Add safety checks to detect missing `MONGO_DB_URI` environment variables.
+- Add structured console logs for database connection state changes, tracing already-connected vs. new-connection states.
+
+#### [MODIFY] [resend.ts](file:///e:/code/Projects/GIT-HUB/WebProjects/anonymous-feedback/lib/resend.ts)
+- Add environment variable check for `RESEND_API_KEY` to catch misconfigurations early.
+
+---
+
+### Authentication and Session Support
+
+#### [MODIFY] [options.ts](file:///e:/code/Projects/GIT-HUB/WebProjects/anonymous-feedback/app/api/auth/%5B...nextauth%5D/options.ts)
+- Align the credential key from `email` to `identifier`.
+- Update custom sign-in page path from `/signin` to `/sign-in`.
+- Add rich debugging console logs in `authorize` callback representing finding/not-finding a user, checking password comparisons, and caught database exceptions.
+
+#### [MODIFY] [next-auth.d.ts](file:///e:/code/Projects/GIT-HUB/WebProjects/anonymous-feedback/types/next-auth.d.ts)
+- Import `DefaultSession` from `next-auth` to resolve compiler types.
+- Unify `isAcceptingMessage` type to `boolean` in `User`, `Session`, and `JWT` interfaces.
+
+---
+
+### API Endpoint Routes
+
+#### [MODIFY] [route.ts](file:///e:/code/Projects/GIT-HUB/WebProjects/anonymous-feedback/app/api/check-username-unique/route.ts)
+- Convert endpoint from `POST` to `GET`.
+- Improve error message formatting from Zod validation checks.
+- Add logging of check results (validation state, query parameter, DB hit result).
+
+#### [MODIFY] [route.ts](file:///e:/code/Projects/GIT-HUB/WebProjects/anonymous-feedback/app/api/sign-up/route.ts)
+- Resolve username duplication and DB schema collision issues.
+- Clean up unverified username-taking logic.
+- Add logs displaying new user signup flows, updates to existing unverified users, and email delivery dispatch.
+
+#### [MODIFY] [route.ts](file:///e:/code/Projects/GIT-HUB/WebProjects/anonymous-feedback/app/api/verify-code/route.ts)
+- Fix response status code from 500 to 404 when a user is not found.
+- Map validation errors correctly for verification code inputs.
+- Add detailed logs showing OTP status, verification result, and expiration status.
+
+---
+
+### Utility and Schema Functions
+
+#### [MODIFY] [sendVerificationEmail.ts](file:///e:/code/Projects/GIT-HUB/WebProjects/anonymous-feedback/utils/sendVerificationEmail.ts)
+- Format log output to stringify response payload object.
+- Log error messages for caught exceptions and dispatch failures.
+
+#### [MODIFY] [signUpSchema.ts](file:///e:/code/Projects/GIT-HUB/WebProjects/anonymous-feedback/schemas/signUpSchema.ts)
+- Replace `{ error: ... }` with `{ message: ... }`.
+- Set password min length to match custom validation message text.
+
+#### [MODIFY] [messageSchema.ts](file:///e:/code/Projects/GIT-HUB/WebProjects/anonymous-feedback/schemas/messageSchema.ts)
+- Rename exported schema variable to `messageSchema` to avoid naming conflict.
+- Fix Zod error message configuration parameter.
+
+#### [MODIFY] [verifySchema.ts](file:///e:/code/Projects/GIT-HUB/WebProjects/anonymous-feedback/schemas/verifySchema.ts)
+- Fix Zod error message parameter.
+
+#### [MODIFY] [acceptMessageSchema.ts](file:///e:/code/Projects/GIT-HUB/WebProjects/anonymous-feedback/schemas/acceptMessageSchema.ts)
+- Add descriptive comments detailing usage context.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+- Run `npm run build` to verify TypeScript compiler correctness.
+- Run `npm run lint` to ensure there are no compilation warnings or errors.
+
+### Manual Verification
+- Output log patterns will be manually verified by inspecting logs generated.

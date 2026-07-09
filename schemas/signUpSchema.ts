@@ -14,17 +14,17 @@ export const emailValidation = z.email();
 //   .string()
 //   .email({error: 'Invalid Email Adress'}); //! depricated
 
-//* password validation zod object
+// * password validation zod object
 export const passwordValidation = z
   .string()
-  .min(4, {error: "Pass must be 6 char"})
-  .max(8)
+  .min(6, { message: "Password must be at least 6 characters" })
+  .max(20, { message: "Password must be no more than 20 characters" });
 
-//* codeOTP validation zod object
+// * codeOTP validation zod object
 export const verificationCodeValidation = z
   .string()
-  .length(6, { //todo: Hardcoded in many places
-    error: "Verification code must be exactly 6 digits",
+  .length(6, { //! hardcoded otp
+    message: "Verification code must be exactly 6 digits",
   });
 
 

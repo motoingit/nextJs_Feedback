@@ -8,87 +8,113 @@ import UserModel from "@/model/User";
 
 //* This consist of Unoptimised thing and optimesed thing
 // https://youtu.be/sijpPYDWBg4?list=PLu71SKxNbfoBAaWGtn9GA2PTw0HO0tXzq&t=2600
+
+/** NextAuth configuration.
+ *
+ * Handles:
+ * - Credentials authentication
+ * - JWT generation
+ * - Session customization
+ * - Custom authentication pages
+*/
 export const authOptions: NextAuthOptions = {
-  providers:[
+  providers: [
     CredentialsProvider({
       id: "credentials",
       name: "Credentials",
       credentials: {
-        //also can add placeholder
-        email: { label: "Email", type: "text "},
+        // Maps the credentials fields. 'identifier' can be email or username
+        identifier: { label: "Email or Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
 
-      //TODO: RECHECK
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      /** Authorization callback that validates the user's credentials.
+       * 
+       * @param credentials - User credentials passed from the sign-in form.
+       * @returns The user object if authentication succeeds, otherwise throws an error.
+       */
       async authorize(credentials: any): Promise<any> {
+        console.log(`[status-log]: LogString > 🔐 [Auth Flow] Authorization request initiated for identifier: "${credentials?.identifier}"`);
         
         try {
+          // Connect to the database before querying the user
           await dbConnect();
           
+          //* Look up user by email or username - Future Proff
           const user = await UserModel.findOne({
-            $or:[
-              {email: credentials.identifier},
-              {username: credentials.identifier},
+            $or: [
+              { email: credentials.identifier },
+              { username: credentials.identifier },
             ]
-          })
+          });
 
-          if(!user){
-            throw new Error("No User Found with this Email")
+          if (!user) {
+            console.warn(`[status-log]: LogString > ⚠️ [Auth Flow] User not found for identifier: "${credentials.identifier}"`);
+            throw new Error("No User Found with this Email or Username");
           }
           
-          if(!user.isVerified){
-            throw new Error("Werify your account first")
+          // Verify email verification status
+          if (!user.isVerified) {
+            console.warn(`[status-log]: LogString > ⚠️ [Auth Flow] User is not verified: "${credentials.identifier}"`);
+            throw new Error("Please verify your account first");
           }
 
-
-          //* NOW
+          // Compare the candidate password with the stored hash
           const isPasswordCorrect = await bcrypt.compare(credentials.password, user.password);
 
-          if(isPasswordCorrect){
+          if (isPasswordCorrect) {
+            console.log(`[info-log]: LogString > ✅ [Auth Flow] Successfully authenticated user: "${user.username}" (ID: ${user._id})`);
             return user;
-          }else{
-            throw new Error("incorrect Password")
+          } else {
+            console.warn(`[warning-log]: LogString > ⚠️ [Auth Flow] Password mismatch for user: "${user.username}"`);
+            throw new Error("Incorrect Password");
           }
 
-        //TODO: RECHECK
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
-          console.log("new Error is Here Bro")
-           throw new Error(error);
+          console.error(`[error-log]: LogString > ❌ [Auth Flow] Error during authorization process:`, error);
+          // Throw the error message directly so NextAuth displays it correctly
+          throw new Error(error.message || "Authentication error occurred");
         }
       },
     })
   ],
 
+  //! abhi tho maine callbaks mai jugad kara hai copy-copy
   callbacks: {
+    /**
+     * Session callback that exposes database fields into the client session object.
+     */
     async session({ session, token }) {
-      if(token){
+      if (token) {
         session.user._id = token._id;
         session.user.isVerified = token.isVerified;
         session.user.isAcceptingMessage = token.isAcceptingMessage;
         session.user.username = token.username;
       }
-      return session
+      return session;
     },
 
+    /**
+     * JWT callback that persists database user details into the token object.
+     */
     async jwt({ token, user }) {
-      if(user){
+      if (user) {
         token._id = user._id?.toString();
         token.isVerified = user.isVerified;
         token.isAcceptingMessage = user.isAcceptingMessage;
         token.username = user.username;
       }
-      return token
+      return token;
     },
   },
 
   pages: {
-    //overfite of signin
+    // Custom login page redirection target
     signIn: '/signin',
   },
 
   session: {
+    // Rely on JSON Web Tokens for session management
     strategy: "jwt",
   },
 

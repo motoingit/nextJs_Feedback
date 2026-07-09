@@ -5,79 +5,91 @@ import UserModel from "@/model/User";
 import { usernameValidation } from "@/schemas/signUpSchema";
 
 
-//squery schema
+//Querry Schema for Testing
 const UsernameQuerySchema = z.object({
   username: usernameValidation,
 })
 
-/* Optimisation can be done - Debouncing techniqueu
+/* //todo: Optimisation can be done - Debouncing techniqueu
   - username avalable hai ki nahi in frontend realtime
 */
 
-export async function POST(req:Request) {
-
-  //NOTE: Next js already handles the wrong request 'POST'
-
-  await dbConnect()
-
+/** GET handler to verify if a username is unique and verified in the system.
+ * Expects 'username' as a URL search parameter.
+ * 
+ * @param req - Incoming HTTP request.
+ * @returns A JSON response indicating if the username is unique or already taken.
+ */
+export async function GET(req: Request) {
+  console.log("[status-log]: LogString > 🔍 GET /api/check-username-unique request received");
+  
   try {
+    await dbConnect();
 
-    //This will give whole URL - {http://localhost:3000/api/cuu?username?phone=android}
-    const {searchParams} = new URL(req.url)
+    //* Extract query parameters from URL which gives url-like-object
+    const { searchParams } = new URL(req.url);
     const queryParam = {
-      username: searchParams.get('username')
-    }
+      username: searchParams.get('username'),
+    };
 
-    /* //* Validation with ZOD
-    this queryParams is just additional validation of is schema foolowing
-     */
+    console.log(`[status-log]: LogString > 📋 Validating username : "${queryParam.username}"`);
+
+    //* Validate APi Format from frontend using Zod schema
     const result = UsernameQuerySchema.safeParse(queryParam);
-    console.log("This is Result",result) //todo: remove
 
-    if(!result.success){
-      //todo: Depricated format here
-      const usernameErrors = result.error.format().username?._errors || []
+    if (!result.success) {
+      const usernameErrors = result.error.format().username?._errors || [];
+      const errorMessage = usernameErrors.length > 0
+        ? usernameErrors.join(", ")
+        : 'Invalid query parameters';
+      
+      console.warn(`[error-log]: LogString > ⚠️ Username validation failed : ${errorMessage}`);
+      
       return Response.json(
         {
-          success:false,
-          message: usernameErrors?.length > 0  
-                  ? usernameErrors.join(", ")  
-                  : 'invalid query parameters',
+          success: false,
+          message: errorMessage,
         },
-        {status: 500}
-      )
+        { status: 400 } // Bad Request is more appropriate than 500 for validation failures
+      );
     }
 
-    const {username} = result.data
+    //* Search the database for any verified user with the same username
+    const { username } = result.data;
 
-    const existingVerifiedUser = await UserModel.findOne({username, isVerified: true})
+    console.log(`[status-log]: LogString > 🔎 Checking database for verified user with username: "${username}"`);
+    const existingVerifiedUser = await UserModel.findOne({ username, isVerified: true });
 
-    if(existingVerifiedUser){
+    if (existingVerifiedUser) {
+      console.log(`❌ Username "${username}" is already taken and verified.`);
       return Response.json(
         {
-          success:false,
+          success: false,
           message: "Username is already taken"
         },
-        {status: 400}
-      )
+        { status: 400 }
+      );
     }
 
+    console.log(`✅ Username "${username}" is unique and available.`);
     return Response.json(
       {
-        success:true,
+        success: true,
         message: "Username is unique"
       },
-      {status: 200}
-    )
+      { status: 200 }
+    );
 
+  //! Unhandeled Error Section - ServerError
   } catch (error) {
-    console.error("Error checking Username", error);
+    console.error("❌ Error checking username uniqueness:", error);
     return Response.json(
       {
-        success:false,
-        message: "Error chekcnign username"
+        success: false,
+        message: "Error checking username"
       },
-      {status: 500}
-    )
+      { status: 500 }
+    );
   }
 }
+

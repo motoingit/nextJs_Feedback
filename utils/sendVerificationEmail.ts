@@ -3,33 +3,41 @@ import { resend } from '@/lib/resend';
 import { ApiResponse } from '@/types/ApiResponse';
 
 
+/**
+ * Dispatches a verification email using the Resend service.
+ * 
+ * @param email - Target recipient email address.
+ * @param username - Username of the recipient to display in the email.
+ * @param verifyCode - The 6-digit OTP verification code.
+ * @returns An ApiResponse indicating success or details about the failure.
+ */
 export default async function sendVerificationEmail(
-    email:string,
-    username:string,
-    verifyCode:string,
+    email: string,
+    username: string,
+    verifyCode: string,
   ): Promise<ApiResponse> { 
+  console.log(`📧 Attempting to dispatch verification email to: ${email} (username: ${username})`);
 
   try {
-    //todo: Some is hardcoded
+    // Send email via Resend API using the React component template
     const { data, error } = await resend.emails.send({
-      // from: 'Acme <onboarding@resend.dev>',
       from: 'onboarding@resend.dev',
       to: email,
-      subject: 'Mystry message| Verification',
-      //? this is function technically but in code its Component or page
+      subject: 'Mystery Message | Verification Code',
       react: VerificationEmail({ username: username, otp: verifyCode }),
     });
 
-    //* The API responded, but with an error
+    // The API responded with an error (e.g. invalid key, invalid domain, etc.)
     if (error) {
+      console.error(`⚠️ Resend API responded with an error for ${email}:`, error);
       return {
         success: false,
         message: error.message,
       };
     }
 
-    //* conosling the sucess
-    console.log(`Verification is Sended : Successcode: ${data}`)
+    // Success response contains mail transaction details (e.g. id)
+    console.log(`✅ Verification email successfully sent. Response payload:`, JSON.stringify(data));
 
     return {
       success: true,
@@ -37,7 +45,8 @@ export default async function sendVerificationEmail(
     };
 
   } catch (emailError) {
-    //* An exception was thrown - when somthing wrong in the path
+    // Catch-all block for network issues or exception throws
+    console.error(`❌ Unexpected exception thrown during email dispatch to ${email}:`, emailError);
     return {
       success: false,
       message:
@@ -45,3 +54,4 @@ export default async function sendVerificationEmail(
     };
   }
 }
+

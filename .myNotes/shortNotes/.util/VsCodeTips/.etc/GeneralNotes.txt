@@ -1,0 +1,26 @@
+//for manual compilation and run [cpp]
+        for lunix
+                //interminal
+                        g++ "FULL_PATH/0.cpp" && ./a.out
+
+        for windows
+                //in command panel
+                        g++ "FULL_PATH\0.cpp" && a.exe
+                // in powershell
+                        g++ "FULL_PATH\0.cpp" ; .\a.exe
+
+        /*              breakdown of steps (CMD)
+                PS C:\Users\mohit> g++ "FULL_PATH"          //for compile
+                PS C:\Users\mohit> & "FULL_PATH\file.exe"  //for run
+                        OUTPUT - Hello
+        */
+
+//Learning 01 - How to restrict content copy in excel sheet online
+https://docs.google.com/spreadsheets/d/1mvlc8EYc3OVVU3X7NKoC0iZJr_45BL_pVxiJec0r94c/htmlview?usp=sharing#
+        *** /htmlview?usp=sharing#     //this encrypt
+
+//To see the library info
+https://en.cppreference.com/w/
+
+//somethin interseting but useless now
+https://www.wholetomato.com/kb/a/archive-of-visual-assist-builds-and-release-notes

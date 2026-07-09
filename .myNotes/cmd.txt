@@ -1,0 +1,15 @@
+code --list-extensions > extensions.txt
+
+npm list next
+
+nslookup -type=SRV _mongodb._tcp.feedbackcluster.baacle1.mongodb.net 8.8.8.
+
+npx create-next-app@latest .
+
+Remove-Item * -Recurse -Force
+
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+
+nvm install lts
+
+nvm use lts

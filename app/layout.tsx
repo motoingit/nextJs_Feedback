@@ -1,24 +1,21 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
+
 import AuthProvider from '../context/AuthProvider';
 
-const inter = Inter({ subsets: ['latin'] });
-
+// configiration
 export const metadata: Metadata = {
   title: 'True Feedback',
   description: 'Real feedback from real people.',
 };
 
-interface RootLayoutProps {
-  children: React.ReactNode;
-}
 
-export default async function RootLayout({ children }: RootLayoutProps) {
+// MAIN FUN
+export default function RootLayout( {children} : {children:React.ReactNode}) {
   return (
     <html lang="en" >
       <AuthProvider>
-        <body className={inter.className}>
+        <body>
           {children}
         </body>
       </AuthProvider>
