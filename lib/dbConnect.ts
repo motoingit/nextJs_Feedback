@@ -61,14 +61,8 @@ async function dbConnect(): Promise<void> {
   );
   
   try {
-    // Attempt connection using the validated MONGO_DB_URI
-    const mongoUri = process.env.MONGO_DB_URI;
-
-    if (!mongoUri) {
-      throw new Error("MONGO_DB_URI is not defined");
-    }
-
-    const db = await mongoose.connect(mongoUri);
+    // Attempt connection using the validated DATABASE_API_KEY
+    const db = await mongoose.connect(process.env.DATABASE_API_KEY!);
 
     // Cache the connection ready state:
     // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting

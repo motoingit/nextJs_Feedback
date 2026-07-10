@@ -1,35 +1,39 @@
+import chalk from "chalk";
 import { z } from "zod";
 
+//Schema for .env Folder
 const envSchema = z.object({
-  MONGO_DB_URI: z
-    .string()
-    .startsWith("mongodb", {
-      message: "Invalid MongoDB connection string",
-    }),
 
-  RESEND_API_KEY: z
-    .string()
-    .startsWith("re_", {
-      message: "Invalid Resend API key",
-    }),
+  DATABASE_API_KEY: z.string(),
 
-  NEXTAUTH_SECRET_KEY: z
-    .string()
-    .min(32, "NEXTAUTH_SECRET_KEY should be at least 32 characters"),
+  VERIFICATION_MESSAGE_SENDER_API_KEY: z.string(),
 
-  NEXTAUTH_URL: z.string().url().optional(),
+  NEXTAUTH_SECRET_KEY: z.string(),
+
+  GOOGLE_GENERATIVE_AI_API_KEY: z.string(),
+  
 });
 
+console.log(
+  chalk.greenBright("[INFO] > "),
+  "Checking .env Format"
+);
 const result = envSchema.safeParse(process.env);
 
 if (!result.success) {
-  console.error("❌ Invalid environment configuration:");
+  console.error(chalk.redBright("[Failed] > "),
+    "environment variables are Not Appropriate"
+  );
 
   for (const issue of result.error.issues) {
-    console.error(` • ${issue.path.join(".")}: ${issue.message}`);
+    console.error(chalk.yellow(` • ${issue.path.join(".")}: ${issue.message}`));
   }
-
   process.exit(1);
+}else{
+  console.info(
+    chalk.greenBright("[SUCCESS] > "),
+    "environment variables are verified"
+  );
 }
 
 export const env = Object.freeze(result.data);

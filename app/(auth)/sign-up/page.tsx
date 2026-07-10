@@ -46,13 +46,12 @@ const signUpFormSchema = z.object({
 });
 
 
-/* ⬇️ SignUpPage
- * @param req - Incoming HTTP request.
- * @returns A JSON response containing.
+/**
+ * SignUpForm component - handles new user registration layout and validation.
  */
 export default function SignUpForm() {
 
-  //STATES
+  //NOTE 📝: Component State definitions
   const [username, setUsername] = useState('');
   const [usernameMessage, setUsernameMessage] = useState('');
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
@@ -61,7 +60,7 @@ export default function SignUpForm() {
 
   const router = useRouter();
 
-  //Zod check
+  //NOTE 📝: Form validation initialization using React Hook Form and Zod
   const form = useForm<z.infer<typeof signUpFormSchema>>({
     resolver: zodResolver(signUpFormSchema),
     defaultValues: {
@@ -71,7 +70,7 @@ export default function SignUpForm() {
     },
   });
 
-  //use EFFECt
+  //NOTE 📝: Effect hook to check if username is unique dynamically after debounce
     useEffect(() => {
     const checkUsernameUnique = async () => {
       if (username) {
@@ -95,7 +94,7 @@ export default function SignUpForm() {
     checkUsernameUnique();
   }, [username]);
 
-  // On Submit
+  //NOTE 📝: Form submission handler to register the user
   const onSubmit = async (data: z.infer<typeof signUpFormSchema>) => {
     if (isSubmitting) {
       return;
@@ -106,11 +105,19 @@ export default function SignUpForm() {
     try {
       const response = await axios.post<ApiResponse>("/api/sign-up", data);
 
-      toast.success("Success", {
-        description: response.data.message,
-      });
-
-      router.replace(`/verify/${data.username}`);
+      if (response.data.success) {
+        toast.success("Success", {
+          description: response.data.message,
+        });
+        router.replace(`/verify/${data.username}`);
+      } else {
+        toast.error("Sign up failed", {
+          description: response.data.message || "Failed to register user.",
+        });
+        //TODO
+        //WARN ⚠️: Refresh page state on failure
+        router.refresh();
+      }
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse>;
 

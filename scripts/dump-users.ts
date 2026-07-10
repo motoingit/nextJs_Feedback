@@ -50,8 +50,8 @@ function loadProjectEnv() {
 async function main() {
   loadProjectEnv();
 
-  if (!process.env.MONGO_DB_URI) {
-    console.error("MONGO_DB_URI is missing. Add it to .env.local or set it in your shell.");
+  if (!process.env.DATABASE_API_KEY) {
+    console.error("DATABASE_API_KEY is missing. Add it to .env.local or set it in your shell.");
     process.exitCode = 1;
     return;
   }

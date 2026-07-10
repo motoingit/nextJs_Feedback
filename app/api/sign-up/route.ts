@@ -4,9 +4,9 @@ import { apiResponse } from "@/utils/returnResponse";
 import sendVerificationEmail from "@/utils/sendVerificationEmail";
 
 import bcrypt from "bcryptjs";
+import chalk from "chalk";
 
-
-//* otp Genration
+//NOTE 📝: Generate a 6-digit OTP verification code
 const generateOTP = () => {
   const MIN_OTP = 100000;
   const MAX_OTP = 999999;
@@ -14,66 +14,76 @@ const generateOTP = () => {
   return generatedOTP.toString();
 }
 
-// Function to acknowledge request from frontend and send back response
+/**
+ * ⬇️ POST handler to register a new user and trigger verification flow.
+ * 
+ * @param req - Incoming HTTP request.
+ * @returns A JSON response indicating if the registration succeeded or failed.
+ */
 export async function POST(req: Request) {
-  console.log("📝 POST /api/sign-up request received");
+  console.log(
+    chalk.blue("[API] > "),
+    "POST /api/sign-up request received"
+  );
 
   try {
     await dbConnect();
 
-    // Extract sign up parameters from the request body
     const { username, email, password } = await req.json();
-    console.log(`📋 Received sign-up request details: Username="${username}", Email="${email}"`);
+    console.log(
+      chalk.gray("[DEBUG]"),
+      `Received sign-up request details: Username="${username}", Email="${email}"`
+    );
 
-    // 1. Check if the username is already taken by a verified user
+    //NOTE 📝: Check if the username is already taken by a verified user
     const existingUserVerifiedByUsername = await UserModel.findOne({
       username,
       isVerified: true
     });
 
     if (existingUserVerifiedByUsername) {
-      console.warn(`⚠️ Sign-up rejected: Username "${username}" is already taken by a verified user.`);
-      return Response.json(
-        {
-          success: false,
-          message: 'Username is already taken'
-        },
-        { status: 400 }
+      console.warn(
+        chalk.yellow("[WARN] > "),
+        `Sign-up rejected: Username "${username}" is already taken by a verified user.`
       );
+      return apiResponse(false, 'Username is already taken', 400);
     }
 
-    // 2. Clear any unverified users holding this username with a different email.
-    // This frees the username field to avoid MongoDB E11000 unique index collisions.
+    //NOTE 📝: Clear any unverified users holding this username to prevent unique constraint collisions
     const deletedConflicts = await UserModel.deleteMany({
       username,
       email: { $ne: email },
       isVerified: false
     });
+    
     if (deletedConflicts.deletedCount > 0) {
-      console.log(`🧹 Cleared ${deletedConflicts.deletedCount} unverified conflicting user account(s) using username "${username}"`);
+      console.log(
+        chalk.gray("[DEBUG]"),
+        `Cleared ${deletedConflicts.deletedCount} unverified conflicting user account(s) using username "${username}"`
+      );
     }
 
-    // Generate a fresh 6-digit OTP code
+    //NOTE 📝: Generate verification code and expiry date (1 hour)
     const verifyCode = generateOTP();
     const expiryDate = new Date();
-    expiryDate.setHours(expiryDate.getHours() + 1); // Code expires in 1 hour
+    expiryDate.setHours(expiryDate.getHours() + 1);
 
-    // 3. Check if a user with this email already exists
+    //NOTE 📝: Check if a user with this email already exists
     const existingUserByEmail = await UserModel.findOne({ email });
 
     if (existingUserByEmail) {
       if (existingUserByEmail.isVerified) {
-        console.warn(`⚠️ Sign-up rejected: Email "${email}" is already registered and verified.`);
-        return Response.json(
-          {
-            success: false,
-            message: 'User already exists with this email'
-          },
-          { status: 400 }
+        console.warn(
+          chalk.yellow("[WARN] > "),
+          `Sign-up rejected: Email "${email}" is already registered and verified.`
         );
+        return apiResponse(false, 'User already exists with this email', 400);
       } else {
-        // Email is not verified yet. Update details with new username, password, and fresh OTP
-        console.log(`🔄 Updating existing unverified user details for email "${email}"`);
+        //NOTE 📝: Update unverified user details with new username, password, and fresh OTP
+        console.log(
+          chalk.gray("[DEBUG]"),
+          `Updating existing unverified user details for email "${email}"`
+        );
         
         const hashedPassword = await bcrypt.hash(password, 10);
         existingUserByEmail.username = username;
@@ -82,11 +92,17 @@ export async function POST(req: Request) {
         existingUserByEmail.verifyCodeExpiry = expiryDate;
 
         await existingUserByEmail.save();
-        console.log(`✅ Successfully updated unverified user "${username}" in the database.`);
+        console.info(
+          chalk.greenBright("[SUCCESS] > "),
+          `Successfully updated unverified user "${username}" in the database.`
+        );
       }
     } else {
-      // First-time signup. Create a brand new user document
-      console.log(`🆕 Creating a new user record for "${username}" (${email})`);
+      //NOTE 📝: Create a brand new user record for first-time sign-up
+      console.log(
+        chalk.gray("[DEBUG]"),
+        `Creating a new user record for "${username}" (${email})`
+      );
       
       const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = new UserModel({
@@ -101,11 +117,17 @@ export async function POST(req: Request) {
       });
 
       await newUser.save();
-      console.log(`✅ Successfully saved new user "${username}" to the database.`);
+      console.info(
+        chalk.greenBright("[SUCCESS] > "),
+        `Successfully saved new user "${username}" to the database.`
+      );
     }
 
-    // 4. Dispatch the verification OTP email
-    console.log(`📧 Dispatched verification flow for "${username}" to email "${email}"`);
+    //NOTE 📝: Dispatch the verification OTP email
+    console.log(
+      chalk.gray("[DEBUG]"),
+      `Dispatched verification flow for "${username}" to email "${email}"`
+    );
     const emailResponse = await sendVerificationEmail(
       email,
       username,
@@ -113,23 +135,22 @@ export async function POST(req: Request) {
     );
 
     if (!emailResponse.success) {
-      console.error(`❌ Verification email dispatch failed: ${emailResponse.message}`);
-      return Response.json(
-        {
-          success: false,
-          message: emailResponse.message,
-        },
-        { status: 500 }
+      console.error(
+        chalk.red("[ERROR] > "),
+        `Verification email dispatch failed: ${emailResponse.message}`
       );
+      return apiResponse(false, emailResponse.message, 500);
     }
 
-    console.log(`🎉 User "${username}" successfully registered and verification email sent.`);
-    return Response.json(
-      {
-        success: true,
-        message: 'User registered successfully. Please verify your email.'
-      },
-      { status: 201 }
+    console.info(
+      chalk.greenBright("[SUCCESS] > "),
+      `User "${username}" successfully registered and verification email sent.`
+    );
+    
+    return apiResponse(
+      true,
+      'User registered successfully. Please verify your email.',
+      201
     );
 
   } catch (error) {
@@ -137,24 +158,26 @@ export async function POST(req: Request) {
       error instanceof Error &&
       error.message.includes("E11000 duplicate key error")
     ) {
-      console.warn(`⚠️ Duplicate key detected during sign-up: ${error.message}`);
-
-      return Response.json(
-        {
-          success: false,
-          message: 'Username or email is already in use',
-        },
-        { status: 400 }
+      console.warn(
+        chalk.yellow("[WARN] > "),
+        `Duplicate key detected during sign-up: ${error.message}`
       );
+
+      return apiResponse(false, 'Username or email is already in use', 400);
     }
 
-    console.error(`❌ Fatal error during user registration process:`, error);
+    console.error(
+      chalk.red("[ERROR] > "),
+      "Fatal error during user registration process:",
+      error
+    );
 
     return apiResponse(
       false,
       "Error registering user",
-      500,
+      500
     );
   }
 }
+
 
