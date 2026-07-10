@@ -13,7 +13,7 @@ import UserModel from "@/model/User";
 //NOTE 📝: Validation schema for verification code query payload
 const verificationCodeQuerySchema = z.object({
   username: usernameValidation,
-  verifyCode: verificationCodeValidation
+  code: verificationCodeValidation
 });
 
 /**
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     await dbConnect();
 
     const body = await req.json();
-    console.log(chalk.gray("[DEBUG]"), `Validating payload for user: "${body?.username}"`);
+    console.log(chalk.gray("[DEBUG]"), `Validating json-payload[username-otp] for : "${body?.username}"`);
 
     const result = verificationCodeQuerySchema.safeParse(body);
 
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     if (!result.success) {
       const formatErrors = result.error.format();
       const usernameErrors = formatErrors.username?._errors || [];
-      const verifyCodeErrors = formatErrors.verifyCode?._errors || [];
+      const verifyCodeErrors = formatErrors.code?._errors || [];
       const combinedErrors = [...usernameErrors, ...verifyCodeErrors];
       
       const errorMessage = combinedErrors.length > 0
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
       return apiResponse(false, errorMessage, 400);
     }
 
-    const { username, verifyCode } = result.data;
+    const { username, code } = result.data;
     console.log(chalk.gray("[DEBUG]"), `Searching for user: "${username}"`);
 
     const user = await UserModel.findOne({ username });
@@ -68,7 +68,8 @@ export async function POST(req: Request) {
       return apiResponse(false, "User not found", 404);
     }
 
-    const isCodeValid = user.verifyCode === verifyCode;
+    //NOTE 📝: if found user then check for code validity and expiry
+    const isCodeValid = (user.verifyCode === code);
     const isCodeNotExpired = new Date(user.verifyCodeExpiry) > new Date();
 
     console.log(

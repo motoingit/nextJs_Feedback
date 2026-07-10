@@ -95,9 +95,9 @@ export default function VerifyAccount() {
           </CardDescription>
         </CardHeader>
 
-        {/* //NOTE: Body FORM */}
-        <CardContent>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          {/* //NOTE: Body FORM */}
+          <CardContent>
             <FieldGroup>
               {/* //REMINDER: name is the input associated */}
               <Controller
@@ -123,19 +123,19 @@ export default function VerifyAccount() {
                 )}
               />
             </FieldGroup>
-          </form>
-        </CardContent>
-        <CardFooter>
-          <Field orientation="horizontal">
-            {/*
-            //NOTE: SEE THIS FIRST .reset()
-            */}
-            <Button type="button" variant="outline" onClick={() => form.reset()}>Reset</Button>
-            <Button className="mt-6 w-full" type="submit">
-                Verify
-            </Button>
-          </Field>
-        </CardFooter>
+          </CardContent>
+          <CardFooter>
+            <Field orientation="horizontal">
+              {/*
+              //NOTE: SEE THIS FIRST .reset()
+              */}
+              <Button type="button" variant="outline" onClick={() => form.reset()}>Reset</Button>
+              <Button className="mt-6 w-full" type="submit">
+                  Verify
+              </Button>
+            </Field>
+          </CardFooter>
+        </form>
       </Card>
     </div>
   );

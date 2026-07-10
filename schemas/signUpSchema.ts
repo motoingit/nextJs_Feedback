@@ -34,7 +34,6 @@ export const signUpSchema = z
     username: usernameValidation,
     email: emailValidation,
     password: passwordValidation,
-    verifyCode: verificationCodeValidation,
   })
   // .refine((data) => data.password === data.confirmPassword, {
   //   message: "Passwords do not match",

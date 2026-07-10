@@ -23,7 +23,9 @@ import { signInSchema } from "@/schemas/signInSchema";
 
 
 export default function Page() {
+
   const router = useRouter();
+
   const form = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
@@ -33,8 +35,9 @@ export default function Page() {
   });
 
   const onSubmit = async (data: z.infer<typeof signInSchema>) => {
+
     const result = await signIn("credentials", {
-      redirect: false,
+      redirect: false, //note: app mat karo redirect hum karlege
       identifier: data.identifier,
       password: data.password,
     });
@@ -50,8 +53,43 @@ export default function Page() {
       description: "You have signed in successfully.",
     });
 
-    router.replace("/");
+    router.replace("/dashboard");
   };
+
+  /*    //if next auth was not above here then onSubmit look like
+
+  const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
+  setIsSubmitting(true);
+
+  try {
+    const response = await axios.post<ApiResponse>(
+      "/api/sign-up",
+      data
+    );
+
+    toast({
+      title: "Success",
+      description: response.data.message,
+    });
+
+    router.replace(`/verify/${username}`);
+  } catch (error) {
+    console.error("Error in signup of user", error);
+
+    const axiosError = error as AxiosError<ApiResponse>;
+
+    toast({
+      title: "Signup failed",
+      description:
+        axiosError.response?.data.message ?? "Something went wrong",
+      variant: "destructive",
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+  
+  */
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-12">

@@ -30,21 +30,8 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { signUpSchema } from "@/schemas/signUpSchema";
 import { ApiResponse } from "@/types/ApiResponse";
-
-const signUpFormSchema = z.object({
-  username: z
-    .string()
-    .min(2, "Username must be at least 2 characters")
-    .max(20, "Username must be no more than 20 characters")
-    .regex(/^[a-zA-Z0-9_]+$/, "Username must not contain special characters"),
-  email: z.email("Please enter a valid email address"),
-  password: z
-    .string()
-    .min(6, "Password must be at least 6 characters")
-    .max(20, "Password must be no more than 20 characters"),
-});
-
 
 /**
  * SignUpForm component - handles new user registration layout and validation.
@@ -61,8 +48,8 @@ export default function SignUpForm() {
   const router = useRouter();
 
   //NOTE 📝: Form validation initialization using React Hook Form and Zod
-  const form = useForm<z.infer<typeof signUpFormSchema>>({
-    resolver: zodResolver(signUpFormSchema),
+  const form = useForm<z.infer<typeof signUpSchema>>({
+    resolver: zodResolver(signUpSchema),
     defaultValues: {
       username: "",
       email: "",
@@ -95,7 +82,7 @@ export default function SignUpForm() {
   }, [username]);
 
   //NOTE 📝: Form submission handler to register the user
-  const onSubmit = async (data: z.infer<typeof signUpFormSchema>) => {
+  const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
     if (isSubmitting) {
       return;
     }
@@ -180,7 +167,7 @@ export default function SignUpForm() {
                       {...field}
                       id={field.name}
                       type="email"
-                      placeholder="Enter your email address"
+                      placeholder="Enter your email address here"
                       autoComplete="email"
                       aria-invalid={fieldState.invalid}
                     />
@@ -205,9 +192,12 @@ export default function SignUpForm() {
                       autoComplete="new-password"
                       aria-invalid={fieldState.invalid}
                     />
+
+                    {/* FIELD ERROR */}
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
                     )}
+                    
                   </Field>
                 )}
               />

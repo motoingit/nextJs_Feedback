@@ -4,26 +4,25 @@ import { getToken } from 'next-auth/jwt';
 
 export { default } from 'next-auth/middleware';
 
-//! Middleware is like "Jane se pehele milke jana"
-//* Kaha kha par ap chahatehai ki middleware run kare
+// Matched routes for proxy execution
 export const config = {
   matcher: ['/dashboard/:path*', '/sign-in', '/sign-up', '/', '/verify/:path*'],
 };
 
 /**
- * Middleware function that checks authentication state using NextAuth token
+ * Proxy function that checks authentication state using NextAuth token
  * and handles redirects accordingly.
  * 
  * @param request - Incoming HTTP request.
- * @returns A redirect response or moves to the next middleware/handler.
+ * @returns A redirect response or moves to the next handler.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Retrieve user session token (JWT)
   const token = await getToken({ req: request });
   const url = request.nextUrl;
 
   // Diagnostic log for every matched route
-  console.log(`🚦 [Middleware] Checking access. Path: "${url.pathname}" | Authenticated: ${!!token}`);
+  console.log(`🚦 [Proxy] Checking access. Path: "${url.pathname}" | Authenticated: ${!!token}`);
 
   // Redirect to dashboard if the user is already authenticated
   // and trying to access sign-in, sign-up, verification, or landing page
@@ -35,13 +34,13 @@ export async function middleware(request: NextRequest) {
       url.pathname === '/'
     )
   ) {
-    console.log(`➡️ [Middleware] Authenticated user on guest route "${url.pathname}". Redirecting to "/dashboard"`);
+    console.log(`➡️ [Proxy] Authenticated user on guest route "${url.pathname}". Redirecting to "/dashboard"`);
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // Redirect to sign-in page if unauthenticated user tries to access dashboard
   if (!token && url.pathname.startsWith('/dashboard')) {
-    console.log(`➡️ [Middleware] Unauthenticated user on private route "${url.pathname}". Redirecting to "/sign-in"`);
+    console.log(`➡️ [Proxy] Unauthenticated user on private route "${url.pathname}". Redirecting to "/sign-in"`);
     return NextResponse.redirect(new URL('/sign-in', request.url));
   }
 

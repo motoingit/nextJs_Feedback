@@ -24,23 +24,39 @@ An Anonymous Feedback platform built with **Next.js 16**, **TypeScript**, **Mong
 
 ``` md
   ├── app/
+  │   ├── (auth)/
+  │   │   ├── sign-in/
+  │   │   ├── sign-up/
+  │   │   └── verify/
+  │   │       └── [username]/
   │   ├── api/
-  │   │   └── sign-up/
-  │   │       └── route.ts
+  │   │   ├── accept-messages/
+  │   │   ├── auth/
+  │   │   ├── check-username-unique/
+  │   │   ├── get-messages/
+  │   │   ├── send-messages/
+  │   │   ├── sign-up/
+  │   │   ├── suggest-messages/
+  │   │   └── verify-code/
   │   ├── favicon.ico
   │   ├── globals.css
   │   ├── layout.tsx
   │   └── page.tsx
   │
   ├── components/
-  │   └── email/
-  │       └── VerificationEmail.tsx
+  │   └── ui/
+  │
+  ├── context/
+  │   └── AuthProvider.tsx
   │
   ├── lib/
   │   ├── dbConnect.ts
+  │   ├── env.ts
+  │   ├── gemini.ts
   │   └── resend.ts
   │
   ├── model/
+  │   ├── Message.ts
   │   └── User.ts
   │
   ├── schemas/
@@ -54,6 +70,7 @@ An Anonymous Feedback platform built with **Next.js 16**, **TypeScript**, **Mong
   │   └── ApiResponse.ts
   │
   ├── utils/
+  │   ├── returnResponse.ts
   │   └── sendVerificationEmail.ts
   │
   ├── public/
@@ -72,14 +89,14 @@ An Anonymous Feedback platform built with **Next.js 16**, **TypeScript**, **Mong
 - Next.js App Router
 - TypeScript Configuration
 - Path Aliases (`@/*`)
-- Environment Configuration
+- Environment Configuration & Validation (Zod schema checking on startup)
 
 ---
 
 ### Database
 
 - MongoDB Connection Utility
-- Reusable Database Connection Function
+- Reusable Database Connection Function (Globally cached to prevent HMR leaks)
 
 ```
 lib/dbConnect.ts
@@ -89,10 +106,11 @@ lib/dbConnect.ts
 
 ### Data Models
 
-- User Model
+- User & Message Schema Models
 
 ```
 model/User.ts
+model/Message.ts
 ```
 
 ---
@@ -117,52 +135,47 @@ schemas/
 
 - Global CSS
 - Root Layout
+- Tailored Toast Notifications (Sonner)
 
 ---
 
 ### Email Verification Setup
 
-- Verification Email Component with React-Email
 - Reusable Resend Client Setup
-- Verification Email Sending Utility
+- Verification Email Sending Utility (HTML template built with inlined responsive styles for minimal compilation overhead)
 
 ```
-components/email/VerificationEmail.tsx
 lib/resend.ts
 utils/sendVerificationEmail.ts
 ```
 
 ---
 
-### Authentication & User API
+### Authentication & API Handlers
 
-- Sign Up Route Handler (`POST`)
-- Password Hashing (using `bcryptjs`)
-- OTP Verification Code Generation & Persistent Expiry
+- Sign Up Route Handler (`POST` with conflicting unverified username cleanups)
+- NextAuth Authentication configuration (`options.ts` and `[...nextauth]/route.ts`)
+- OTP Verification Code Route Handler (`POST`)
+- Unique Username Availability Check API (`GET` with debounce support)
+- Message Acceptance Toggle API (`GET` & `POST`)
+- Anonymous Feedback Messaging APIs (`POST` delivery & `GET` aggregations)
 
 ```
 app/api/sign-up/route.ts
-```
-
----
-
-### Types & Interfaces
-
-- Custom Standardized `ApiResponse` interface
-
-```
-types/ApiResponse.ts
+app/api/auth/[...nextauth]/options.ts
+app/api/verify-code/route.ts
+app/api/check-username-unique/route.ts
+app/api/accept-messages/route.ts
+app/api/get-messages/route.ts
+app/api/send-messages/route.ts
 ```
 
 ---
 
 # 🚧 Currently Working On
 
-- Authentication (NextAuth Integration for Sign-In)
-- User OTP/Verification Code Verification API Route
-- Toggle Accept Message API Route
-- User Dashboard & Public Profile
-- Anonymous Feedback Submission API
+- User Dashboard UI & Public Profile page integration
+- Deployment pipeline optimizations
 
 ---
 
@@ -176,7 +189,6 @@ types/ApiResponse.ts
 | MongoDB | Database |
 | Zod | Validation |
 | Resend | Email Service |
-| React Email | Email Styling |
 | Bcryptjs | Password Hashing |
 | ESLint | Linting |
 | PostCSS | Styling |
@@ -185,14 +197,8 @@ types/ApiResponse.ts
 
 # 📅 Upcoming Features
 
-- User Sign-In (NextAuth integration)
-- OTP Verification API (Verify Email)
-- Anonymous Feedback Submission
 - Public Profile Page
-- User Dashboard
-- Toggle Accept Messages
-- Message Inbox
-- Delete Messages
+- User Dashboard UI
 - Loading States
 - Toast Notifications
 - Error Handling
@@ -260,10 +266,10 @@ http://localhost:3000
 | Zod Schemas | ✅ |
 | Sign-Up API | ✅ |
 | Email Verification Setup | ✅ |
-| Sign-In (NextAuth) | 🚧 |
-| OTP Verification Route | 🚧 |
-| Anonymous Messages | 🚧 |
-| Dashboard | 🚧 |
+| Sign-In (NextAuth) | ✅ |
+| OTP Verification Route | ✅ |
+| Anonymous Messages API | ✅ |
+| Dashboard UI | 🚧 |
 | Deployment | ⏳ |
 
 ---

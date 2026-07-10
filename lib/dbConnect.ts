@@ -2,17 +2,26 @@ import mongoose from "mongoose";
 import chalk from "chalk";
 
 /**
- * Type representing the connection caching object.
+ * Interface representing the cached database connection structure.
  */
-type ConnectionObject = {
-  isConnected?: number;
-};
+interface MongooseCache {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+}
 
-// Cached connection object to reuse connections across serverless function invocations
-const connection: ConnectionObject = {};
+declare global {
+  // eslint-disable-next-line no-var
+  var mongoose: MongooseCache | undefined;
+}
 
-/**
- * Establishes a connection to the MongoDB database.
+// Global cached connection reference to survive HMR/Hot Reload re-evaluations
+if (!global.mongoose) {
+  global.mongoose = { conn: null, promise: null };
+}
+
+const connectionCache = global.mongoose;
+
+/* Establishes a connection to the MongoDB database.
  * Reuses existing connections if already established to prevent exceeding pool limits in serverless env.
  * 
  * @returns A promise that resolves when the database is successfully connected or already connected.
@@ -25,56 +34,49 @@ async function dbConnect(): Promise<void> {
     "Checking database connection state..."
   );
 
-  // Check if we have a cached connection to the database
-  if (connection.isConnected) {
-
+  // 1. If connection already exists in global cache, reuse it
+  if (connectionCache.conn) {
     console.log(
       chalk.green("[SUCCESS]"),
       ">",
-      "Using Already Connected MongoDB connection."
+      "Using cached active MongoDB connection."
     );
-
     return;
   }
 
-  // Check Mongoose's global connection state as a fallback
-  if (mongoose.connections.length > 0) {
+  // 2. If no connection promise exists, establish a new one
+  if (!connectionCache.promise) {
+    console.log(
+      chalk.blue("[INFO]"),
+      ">",
+      "Establishing new MongoDB connection..."
+    );
 
-    connection.isConnected = mongoose.connections[0].readyState;
+    const mongoUri = process.env.DATABASE_API_KEY;
+    if (!mongoUri) {
+      throw new Error("DATABASE_API_KEY is not defined");
+    }
 
-    if (connection.isConnected === 1) {
+    // This can make failures easier to detect, but it's not inherently a performance optimization.
+    const opts = {
+      bufferCommands: false,
+    };
 
+    connectionCache.promise = mongoose.connect(mongoUri, opts).then((m) => {
       console.log(
         chalk.green("[SUCCESS]"),
         ">",
-        "Using existing Mongoose global connection."
+        "Successfully connected to MongoDB."
       );
-
-      return;
-    }
+      return m;
+    });
   }
 
-  console.log(
-    chalk.blue("[INFO]"),
-    ">",
-    "Establishing new MongoDB connection..."
-  );
-  
   try {
-    // Attempt connection using the validated DATABASE_API_KEY
-    const db = await mongoose.connect(process.env.DATABASE_API_KEY!);
-
-    // Cache the connection ready state:
-    // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
-    connection.isConnected = db.connections[0].readyState;
-    
-    console.log(
-      chalk.green("[SUCCESS]"),
-      ">",
-      "Successfully connected to MongoDB."
-    );
-    
+    connectionCache.conn = await connectionCache.promise;
   } catch (dbConnectionError) {
+    // Clear failed promise cache to allow retries on subsequent requests
+    connectionCache.promise = null;
 
     console.error(
       chalk.red("[ERROR]"),

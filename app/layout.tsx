@@ -8,16 +8,12 @@ import { cn } from "@/lib/utils";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
-
-// configiration
 export const metadata: Metadata = {
   title: 'True Feedback',
   description: 'Real feedback from real people.',
 };
 
-
-// MAIN FUN
-export default function RootLayout( {children} : {children:React.ReactNode}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={cn("font-sans", geist.variable)} >
       <AuthProvider>

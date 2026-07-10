@@ -1,40 +1,39 @@
-import {z} from "zod"
+import { z } from "zod";
+import chalk from "chalk";
 
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/model/User";
 import { usernameValidation } from "@/schemas/signUpSchema";
+import { apiResponse } from "@/utils/returnResponse";
 
-
-//Querry Schema for Testing
+//NOTE 📝: Validation schema for username query parameter
 const UsernameQuerySchema = z.object({
   username: usernameValidation,
-})
+});
 
-/* //todo: Optimisation can be done - Debouncing techniqueu
-  - username avalable hai ki nahi in frontend realtime
-*/
-
-/** GET handler to verify if a username is unique and verified in the system.
+/**
+ * ⬇️ GET handler to verify if a username is unique and verified in the system.
  * Expects 'username' as a URL search parameter.
  * 
  * @param req - Incoming HTTP request.
  * @returns A JSON response indicating if the username is unique or already taken.
  */
 export async function GET(req: Request) {
-  console.log("[status-log]: LogString > 🔍 GET /api/check-username-unique request received");
+  console.log(
+    chalk.blue("[API] > "),
+    "GET /api/check-username-unique request received"
+  );
   
   try {
     await dbConnect();
 
-    //* Extract query parameters from URL which gives url-like-object
     const { searchParams } = new URL(req.url);
     const queryParam = {
       username: searchParams.get('username'),
     };
 
-    console.log(`[status-log]: LogString > 📋 Validating username : "${queryParam.username}"`);
+    console.log(chalk.gray("[DEBUG]"), `Validating username: "${queryParam.username}"`);
 
-    //* Validate APi Format from frontend using Zod schema
     const result = UsernameQuerySchema.safeParse(queryParam);
 
     if (!result.success) {
@@ -43,53 +42,41 @@ export async function GET(req: Request) {
         ? usernameErrors.join(", ")
         : 'Invalid query parameters';
       
-      console.warn(`[error-log]: LogString > ⚠️ Username validation failed : ${errorMessage}`);
-      
-      return Response.json(
-        {
-          success: false,
-          message: errorMessage,
-        },
-        { status: 400 } // Bad Request is more appropriate than 500 for validation failures
+      console.warn(
+        chalk.yellow("[WARN] > "),
+        `Username validation failed: ${errorMessage}`
       );
+      
+      return apiResponse(false, errorMessage, 400);
     }
 
-    //* Search the database for any verified user with the same username
+    //NOTE 📝: Check if username is already taken by a verified user
     const { username } = result.data;
 
-    console.log(`[status-log]: LogString > 🔎 Checking database for verified user with username: "${username}"`);
+    console.log(chalk.gray("[DEBUG]"), `Checking database for verified user: "${username}"`);
     const existingVerifiedUser = await UserModel.findOne({ username, isVerified: true });
 
     if (existingVerifiedUser) {
-      console.log(`❌ Username "${username}" is already taken and verified.`);
-      return Response.json(
-        {
-          success: false,
-          message: "Username is already taken"
-        },
-        { status: 400 }
+      console.warn(
+        chalk.yellow("[WARN] > "),
+        `Username "${username}" is already taken and verified.`
       );
+      return apiResponse(false, "Username is already taken", 400);
     }
 
-    console.log(`✅ Username "${username}" is unique and available.`);
-    return Response.json(
-      {
-        success: true,
-        message: "Username is unique"
-      },
-      { status: 200 }
+    console.info(
+      chalk.greenBright("[SUCCESS] > "),
+      `Username "${username}" is unique and available.`
     );
+    return apiResponse(true, "Username is unique", 200);
 
-  //! Unhandeled Error Section - ServerError
   } catch (error) {
-    console.error("❌ Error checking username uniqueness:", error);
-    return Response.json(
-      {
-        success: false,
-        message: "Error checking username"
-      },
-      { status: 500 }
+    console.error(
+      chalk.red("[ERROR] > "),
+      "Error checking username uniqueness:",
+      error
     );
+    return apiResponse(false, "Error checking username", 500);
   }
 }
 
