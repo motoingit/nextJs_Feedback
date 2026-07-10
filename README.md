@@ -6,7 +6,7 @@ An Anonymous Feedback platform built with **Next.js 16**, **TypeScript**, **Mong
 
 ---
 
-# 📌 Current Progress
+# 📌 Current Progress (90% Complete)
 
 ## ✅ Project Setup
 
@@ -24,7 +24,12 @@ An Anonymous Feedback platform built with **Next.js 16**, **TypeScript**, **Mong
 
 ``` md
   ├── app/
-  │   ├── (auth)/
+  │   ├── (app)/                    # App Route Group (Shares Navbar header layout)
+  │   │   ├── layout.tsx
+  │   │   ├── page.tsx              # Redesigned landing page with feature cards
+  │   │   └── dashboard/
+  │   │       └── page.tsx          # Modular grid dashboard widgets
+  │   ├── (auth)/                   # Auth Route Group (Clean pages without Navbar)
   │   │   ├── sign-in/
   │   │   ├── sign-up/
   │   │   └── verify/
@@ -33,18 +38,24 @@ An Anonymous Feedback platform built with **Next.js 16**, **TypeScript**, **Mong
   │   │   ├── accept-messages/
   │   │   ├── auth/
   │   │   ├── check-username-unique/
+  │   │   ├── delete-message/       # DELETE API for removing feedback messages
+  │   │   │   └── [messageid]/
   │   │   ├── get-messages/
   │   │   ├── send-messages/
   │   │   ├── sign-up/
   │   │   ├── suggest-messages/
   │   │   └── verify-code/
+  │   ├── u/                        # Public access routes
+  │   │   └── [username]/           # Dynamic feedback submission page [UNDER CONSTRUCTION]
   │   ├── favicon.ico
   │   ├── globals.css
-  │   ├── layout.tsx
-  │   └── page.tsx
+  │   ├── layout.tsx                # Root layout (Main HTML / body / providers)
   │
   ├── components/
-  │   └── ui/
+  │   ├── my/
+  │   │   ├── MessageCard.tsx       # Message card render & deletion component
+  │   │   └── Navbar.tsx            # Sticky glassmorphic navbar component
+  │   └── ui/                       # Reusable shadcn/base-ui design tokens
   │
   ├── context/
   │   └── AuthProvider.tsx
@@ -70,13 +81,14 @@ An Anonymous Feedback platform built with **Next.js 16**, **TypeScript**, **Mong
   │   └── ApiResponse.ts
   │
   ├── utils/
+  │   ├── logger-init.ts            # Monkey-patched global server console stream formatters
   │   ├── returnResponse.ts
   │   └── sendVerificationEmail.ts
   │
+  ├── proxy.ts                      # Request gateway proxy checker (Replacing deprecated middleware)
   ├── public/
   ├── .env
   ├── next.config.ts
-  ├── package.json
   └── tsconfig.json
 ```
 
@@ -84,98 +96,37 @@ An Anonymous Feedback platform built with **Next.js 16**, **TypeScript**, **Mong
 
 # ✅ Features Completed
 
-### Project Configuration
+### 1. UI Redesign & Aesthetics
+- **Branding Header**: Added a sticky, glassmorphic Navigation Header (`Navbar.tsx`) with blur backdrops, bold gradients, and conditional account logic.
+- **Home Landing Page**: Beautiful, fully responsive homepage layout featuring an interactive mesh background glow, card carousels, and detailed feature grids.
+- **Glassmorphic Auth Pages**: Styled all registration, login, and verify layouts with background flows, drop shadows, and clean field group structures.
+- **Modular Dashboard Layout**: Replaced flat page layouts with widget panels (Link Sharing card, Status control block, and 3-column inbox grid).
+- **Custom Toasters (Sonner)**: Standardized to colorful, bold, and centered top-center banner alerts.
 
-- Next.js App Router
-- TypeScript Configuration
-- Path Aliases (`@/*`)
-- Environment Configuration & Validation (Zod schema checking on startup)
+### 2. Database & Data Models
+- Reusable MongoDB connection state function (cached globally to survive HMR/Hot Reload re-evaluations).
+- Mongoose User & Message schemas.
 
----
+### 3. Validation
+- Comprehensive form parsing and validation schemas implemented using **Zod** (Sign up, sign in, validation, messages, and switches).
 
-### Database
+### 4. Email Verification Setup
+- Verification email utility using Resend with custom HTML responsive styling templates.
 
-- MongoDB Connection Utility
-- Reusable Database Connection Function (Globally cached to prevent HMR leaks)
-
-```
-lib/dbConnect.ts
-```
-
----
-
-### Data Models
-
-- User & Message Schema Models
-
-```
-model/User.ts
-model/Message.ts
-```
-
----
-
-### Validation
-
-Implemented using **Zod**
-
-- Sign Up Validation
-- Sign In Validation
-- Verification Validation
-- Message Validation
-- Accept Message Validation
-
-```
-schemas/
-```
-
----
-
-### Styling
-
-- Global CSS
-- Root Layout
-- Tailored Toast Notifications (Sonner)
-
----
-
-### Email Verification Setup
-
-- Reusable Resend Client Setup
-- Verification Email Sending Utility (HTML template built with inlined responsive styles for minimal compilation overhead)
-
-```
-lib/resend.ts
-utils/sendVerificationEmail.ts
-```
-
----
-
-### Authentication & API Handlers
-
-- Sign Up Route Handler (`POST` with conflicting unverified username cleanups)
-- NextAuth Authentication configuration (`options.ts` and `[...nextauth]/route.ts`)
-- OTP Verification Code Route Handler (`POST`)
-- Unique Username Availability Check API (`GET` with debounce support)
-- Message Acceptance Toggle API (`GET` & `POST`)
-- Anonymous Feedback Messaging APIs (`POST` delivery & `GET` aggregations)
-
-```
-app/api/sign-up/route.ts
-app/api/auth/[...nextauth]/options.ts
-app/api/verify-code/route.ts
-app/api/check-username-unique/route.ts
-app/api/accept-messages/route.ts
-app/api/get-messages/route.ts
-app/api/send-messages/route.ts
-```
+### 5. Authentication & API Handlers
+-conflicting unverified user cleanup triggers on new sign-ups.
+- NextAuth configuration (`options.ts` and callback token persistence).
+- Dynamic Username availability checker (with client-side input debounce).
+- Verification OTP handler (`verify-code`).
+- Toggle inbox acceptance API (`accept-messages` with modern native `{ returnDocument: 'after' }` mongoose queries).
+- Message delete API (`DELETE` route fully wired to databases).
+- Global console logs formatter (appends vertical spacing and colorizes status outputs like `[SUCCESS]`, `[ERROR]`, etc. with terminal background block colors).
 
 ---
 
 # 🚧 Currently Working On
 
-- User Dashboard UI & Public Profile page integration
-- Deployment pipeline optimizations
+- **Public Submission Page (`/u/[username]`)**: Renders public-facing landing where anonymous feedback is typed, checked against AI suggestion Prompts (via Gemini), and dispatched to MongoDB inbox arrays.
 
 ---
 
@@ -183,72 +134,41 @@ app/api/send-messages/route.ts
 
 | Technology | Usage |
 |------------|-------|
-| Next.js 16 | Framework |
-| React 19 | UI |
-| TypeScript | Language |
-| MongoDB | Database |
-| Zod | Validation |
-| Resend | Email Service |
-| Bcryptjs | Password Hashing |
-| ESLint | Linting |
-| PostCSS | Styling |
-
----
-
-# 📅 Upcoming Features
-
-- Public Profile Page
-- User Dashboard UI
-- Loading States
-- Toast Notifications
-- Error Handling
-- Responsive UI
-
----
-
-# 🧠 Learning Goals
-
-This project is being built to learn:
-
-- Next.js App Router
-- Server Components
-- Route Handlers
-- MongoDB Integration
-- Zod Validation
-- Authentication
-- TypeScript Best Practices
-- Scalable Project Structure
+| Next.js 16 | React framework |
+| React 19 | UI engine |
+| TypeScript | Dynamic safety |
+| MongoDB | Datastore |
+| Mongoose 9 | ODM layer |
+| Zod | Payload validation |
+| Resend | Email sender API |
+| Gemini AI | Suggested prompt generators |
+| Tailwind CSS 4 | Styling layout |
 
 ---
 
 # 🚀 Getting Started
 
-Clone the repository
-
+Clone the repository:
 ```bash
 git clone <repository-url>
 ```
 
-Install dependencies
-
+Install dependencies:
 ```bash
 npm install
 ```
 
-Create environment variables
-
+Create environment variables:
 ```bash
 cp .env.example .env
 ```
 
-Run the development server
-
+Run the development server:
 ```bash
 npm run dev
 ```
 
-Open
-
+Open:
 ```
 http://localhost:3000
 ```
@@ -260,17 +180,20 @@ http://localhost:3000
 | Module | Status |
 |---------|--------|
 | Project Setup | ✅ |
-| TypeScript | ✅ |
-| MongoDB Setup | ✅ |
-| User Model | ✅ |
+| TypeScript Compiler | ✅ |
+| MongoDB Connector | ✅ |
 | Zod Schemas | ✅ |
 | Sign-Up API | ✅ |
-| Email Verification Setup | ✅ |
-| Sign-In (NextAuth) | ✅ |
 | OTP Verification Route | ✅ |
-| Anonymous Messages API | ✅ |
-| Dashboard UI | 🚧 |
-| Deployment | ⏳ |
+| Sign-In (NextAuth credentials) | ✅ |
+| Gateway Proxy Checker (`proxy.ts`) | ✅ |
+| Accept Messages API | ✅ |
+| Get Messages API | ✅ |
+| Delete Message API | ✅ |
+| Dashboard UI | ✅ |
+| Terminal Logging Colors & Spacing | ✅ |
+| Public Profile Page (`/u/[username]`) | 🚧 |
+| Deployment Adaptations | ⏳ |
 
 ---
 

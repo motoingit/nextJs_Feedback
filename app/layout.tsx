@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from "@/components/shadcn/sonner"
 import AuthProvider from '../context/AuthProvider';
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
@@ -17,9 +17,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={cn("font-sans", geist.variable)} >
       <AuthProvider>
-        <body>
+        <body className="font-sans antialiased bg-slate-50 dark:bg-slate-950">
           {children}
-          <Toaster />
+          <Toaster richColors position="top-center" />
         </body>
       </AuthProvider>
     </html>

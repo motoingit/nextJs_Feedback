@@ -1,16 +1,12 @@
 'use client'
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/shadcn/button"
 import {
   Card,
-  CardAction,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-
+} from "@/components/shadcn/card"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,69 +17,73 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/shadcn/alert-dialog"
 import { Message } from "@/model/Message"
 import { toast } from "sonner"
 import axios from "axios"
 import { ApiResponse } from "@/types/ApiResponse"
-
+import { Trash2 } from "lucide-react"
 
 type MessageCardProps = {
   message: Message;
   onMessageDelete: (messageId: string) => void
 }
 
-export function MessageCard({message, onMessageDelete}: MessageCardProps) {
-
-  const handelDeleteConfirm = async () =>{
-    const res = await axios.delete<ApiResponse>(`/api/delete-message/${message._id}`)
-
-    toast.info(res.data.message,{
-
-    })
-
-    onMessageDelete(String(message._id));
+export function MessageCard({ message, onMessageDelete }: MessageCardProps) {
+  const handleDeleteConfirm = async () => {
+    try {
+      const res = await axios.delete<ApiResponse>(`/api/delete-message/${message._id}`)
+      toast.success(res.data.message || "Message deleted successfully");
+      onMessageDelete(String(message._id));
+    } catch (error) {
+      toast.error("Failed to delete message");
+    }
   }
 
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle>CardTitle</CardTitle>
-        {/** sir has use <X classname="w-5 h-5"> */}
+    <Card className="w-full border border-border/60 bg-card/60 backdrop-blur-sm shadow-sm rounded-2xl p-5 hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+      <CardHeader className="p-0 pb-3 flex flex-row items-start justify-between gap-4">
+        <div className="space-y-1">
+          <CardTitle className="text-base font-semibold leading-relaxed text-foreground break-words">
+            {message.content}
+          </CardTitle>
+        </div>
+
         <AlertDialog>
-          <AlertDialogTrigger render={<Button variant="outline">Delete</Button>} />
+          <AlertDialogTrigger render={
+            <Button variant="destructive" size="xs" className="shrink-0 p-2 h-8 w-8 flex items-center justify-center rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 border-none shadow-none">
+              <Trash2 className="size-4" />
+            </Button>
+          } />
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogTitle>Delete Message?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your
-                account from our servers.
+                Are you sure you want to permanently delete this anonymous feedback message? This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handelDeleteConfirm}>Continue</AlertDialogAction>
+              <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-        {/** */}
-          
-        <CardDescription>
-          CardDescription
-        </CardDescription>
-        {/* <CardAction>
-          <Button variant="link">Sign Up</Button>
-        </CardAction> */}
       </CardHeader>
-
-      {/* <CardContent>
-      </CardContent> */}
-
-      {/* <CardFooter className="flex-col gap-2">
-      </CardFooter> */}
+      
+      <CardContent className="p-0 flex items-center justify-between text-xs text-muted-foreground font-medium pt-2 border-t border-border/30">
+        <span>Received via link</span>
+        <span>
+          {new Date(message.createdAt).toLocaleDateString(undefined, {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })}
+        </span>
+      </CardContent>
     </Card>
   )
 }

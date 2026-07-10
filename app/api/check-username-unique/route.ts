@@ -1,5 +1,4 @@
 import { z } from "zod";
-import chalk from "chalk";
 
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/model/User";
@@ -19,10 +18,7 @@ const UsernameQuerySchema = z.object({
  * @returns A JSON response indicating if the username is unique or already taken.
  */
 export async function GET(req: Request) {
-  console.log(
-    chalk.blue("[API] > "),
-    "GET /api/check-username-unique request received"
-  );
+  console.log("[API] GET /api/check-username-unique request received");
   
   try {
     await dbConnect();
@@ -32,7 +28,7 @@ export async function GET(req: Request) {
       username: searchParams.get('username'),
     };
 
-    console.log(chalk.gray("[DEBUG]"), `Validating username: "${queryParam.username}"`);
+    console.log(`[DEBUG] Validating username: "${queryParam.username}"`);
 
     const result = UsernameQuerySchema.safeParse(queryParam);
 
@@ -42,10 +38,7 @@ export async function GET(req: Request) {
         ? usernameErrors.join(", ")
         : 'Invalid query parameters';
       
-      console.warn(
-        chalk.yellow("[WARN] > "),
-        `Username validation failed: ${errorMessage}`
-      );
+      console.warn(`[WARN] Username validation failed: ${errorMessage}`);
       
       return apiResponse(false, errorMessage, 400);
     }
@@ -53,29 +46,19 @@ export async function GET(req: Request) {
     //NOTE 📝: Check if username is already taken by a verified user
     const { username } = result.data;
 
-    console.log(chalk.gray("[DEBUG]"), `Checking database for verified user: "${username}"`);
+    console.log(`[DEBUG] Checking database for verified user: "${username}"`);
     const existingVerifiedUser = await UserModel.findOne({ username, isVerified: true });
 
     if (existingVerifiedUser) {
-      console.warn(
-        chalk.yellow("[WARN] > "),
-        `Username "${username}" is already taken and verified.`
-      );
+      console.warn(`[WARN] Username "${username}" is already taken and verified.`);
       return apiResponse(false, "Username is already taken", 400);
     }
 
-    console.info(
-      chalk.greenBright("[SUCCESS] > "),
-      `Username "${username}" is unique and available.`
-    );
+    console.info(`[SUCCESS] Username "${username}" is unique and available.`);
     return apiResponse(true, "Username is unique", 200);
 
   } catch (error) {
-    console.error(
-      chalk.red("[ERROR] > "),
-      "Error checking username uniqueness:",
-      error
-    );
+    console.error("[ERROR] Error checking username uniqueness:", error);
     return apiResponse(false, "Error checking username", 500);
   }
 }

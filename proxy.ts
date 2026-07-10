@@ -1,6 +1,6 @@
+import "@/utils/logger-init";
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-
 
 export { default } from 'next-auth/middleware';
 
@@ -18,11 +18,17 @@ export const config = {
  */
 export async function proxy(request: NextRequest) {
   // Retrieve user session token (JWT)
-  const token = await getToken({ req: request });
+  const token = await getToken({
+    req: request,
+    //TODO : is this right
+    secret: process.env.NEXTAUTH_SECRET
+  });
   const url = request.nextUrl;
 
   // Diagnostic log for every matched route
-  console.log(`🚦 [Proxy] Checking access. Path: "${url.pathname}" | Authenticated: ${!!token}`);
+  console.log(
+    `[Proxy] Checking access. Path: "${url.pathname}" | Authenticated: ${token ? "true" : "false"}`
+  );
 
   // Redirect to dashboard if the user is already authenticated
   // and trying to access sign-in, sign-up, verification, or landing page
@@ -34,13 +40,17 @@ export async function proxy(request: NextRequest) {
       url.pathname === '/'
     )
   ) {
-    console.log(`➡️ [Proxy] Authenticated user on guest route "${url.pathname}". Redirecting to "/dashboard"`);
+    console.log(
+      `[Proxy] Redirecting authenticated user on guest route "${url.pathname}" to "/dashboard"`
+    );
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // Redirect to sign-in page if unauthenticated user tries to access dashboard
   if (!token && url.pathname.startsWith('/dashboard')) {
-    console.log(`➡️ [Proxy] Unauthenticated user on private route "${url.pathname}". Redirecting to "/sign-in"`);
+    console.log(
+      `[Proxy] Redirecting unauthenticated user on private route "${url.pathname}" to "/sign-in"`
+    );
     return NextResponse.redirect(new URL('/sign-in', request.url));
   }
 

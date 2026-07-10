@@ -4,7 +4,6 @@ import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/model/User";
 import { User } from "next-auth";
 import { apiResponse } from "@/utils/returnResponse";
-import chalk from "chalk";
 
 /**
  * ⬇️ POST handler to toggle/update the message acceptance status for the logged-in user.
@@ -13,10 +12,7 @@ import chalk from "chalk";
  * @returns A JSON response indicating if the update succeeded or failed.
  */
 export async function POST(req: Request) {
-  console.log(
-    chalk.blue("[API] > "),
-    "POST /api/accept-messages request received"
-  );
+  console.log("[API] POST /api/accept-messages request received");
 
   await dbConnect();
 
@@ -24,10 +20,7 @@ export async function POST(req: Request) {
   const user: User = session?.user as User;
 
   if (!session || !session.user) {
-    console.warn(
-      chalk.yellow("[WARN] > "),
-      "Unauthenticated attempt to update message acceptance."
-    );
+    console.warn("[WARN] Unauthenticated attempt to update message acceptance.");
     return apiResponse(
       false,
       'Not Authenticated',
@@ -37,24 +30,18 @@ export async function POST(req: Request) {
 
   const userId = user._id;
   const { acceptMessage } = await req.json();
-  console.log(
-    chalk.gray("[DEBUG]"),
-    `Updating acceptance status for user "${user.username}" to: ${acceptMessage}`
-  );
+  console.log(`[DEBUG] Updating acceptance status for user "${user.username}" to: ${acceptMessage}`);
 
   try {
     //NOTE 📝: Find and update the user's message acceptance status
     const updatedUser = await UserModel.findOneAndUpdate(
       { _id: userId },
       { isAcceptingMessage: acceptMessage },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!updatedUser) {
-      console.warn(
-        chalk.yellow("[WARN] > "),
-        `Unable to find user "${user.username}" (ID: ${userId}) to update status.`
-      );
+      console.warn(`[WARN] Unable to find user "${user.username}" (ID: ${userId}) to update status.`);
       return apiResponse(
         false,
         'Unable to find user to update message acceptance status',
@@ -62,10 +49,7 @@ export async function POST(req: Request) {
       );
     }
 
-    console.info(
-      chalk.greenBright("[SUCCESS] > "),
-      `Successfully updated message acceptance status for "${user.username}" to: ${acceptMessage}`
-    );
+    console.info(`[SUCCESS] Successfully updated message acceptance status for "${user.username}" to: ${acceptMessage}`);
 
     return apiResponse(
       true,
@@ -74,11 +58,7 @@ export async function POST(req: Request) {
     );
 
   } catch (error) {
-    console.error(
-      chalk.red("[ERROR] > "),
-      'Error updating message acceptance status:',
-      error
-    );
+    console.error('[ERROR] Error updating message acceptance status:', error);
 
     return apiResponse(
       false,
@@ -95,10 +75,7 @@ export async function POST(req: Request) {
  * @returns A JSON response containing the current acceptance status.
  */
 export async function GET(req: Request) {
-  console.log(
-    chalk.blue("[API] > "),
-    "GET /api/accept-messages request received"
-  );
+  console.log("[API] GET /api/accept-messages request received");
 
   await dbConnect();
 
@@ -106,10 +83,7 @@ export async function GET(req: Request) {
   const user: User = session?.user as User;
 
   if (!session || !session.user) {
-    console.warn(
-      chalk.yellow("[WARN] > "),
-      "Unauthenticated attempt to check message acceptance."
-    );
+    console.warn("[WARN] Unauthenticated attempt to check message acceptance.");
     return apiResponse(
       false,
       'Not Authenticated',
@@ -118,16 +92,13 @@ export async function GET(req: Request) {
   }
 
   const userId = user._id;
-  console.log(chalk.gray("[DEBUG]"), `Retrieving acceptance status for user: "${user.username}"`);
+  console.log(`[DEBUG] Retrieving acceptance status for user: "${user.username}"`);
 
   try {
     const foundUser = await UserModel.findById(userId);
   
     if (!foundUser) {
-      console.warn(
-        chalk.yellow("[WARN] > "),
-        `User not found for ID: ${userId}`
-      );
+      console.warn(`[WARN] User not found for ID: ${userId}`);
       return apiResponse(
         false,
         'User not found',
@@ -135,10 +106,7 @@ export async function GET(req: Request) {
       );
     }
   
-    console.info(
-      chalk.greenBright("[SUCCESS] > "),
-      `Retrieved acceptance status for "${user.username}": ${foundUser.isAcceptingMessage}`
-    );
+    console.info(`[SUCCESS] Retrieved acceptance status for "${user.username}": ${foundUser.isAcceptingMessage}`);
 
     return apiResponse(
       true,
@@ -148,11 +116,7 @@ export async function GET(req: Request) {
     );
 
   } catch (error) {
-    console.error(
-      chalk.red("[ERROR] > "),
-      'Error retrieving message acceptance status:',
-      error
-    );
+    console.error('[ERROR] Error retrieving message acceptance status:', error);
 
     return apiResponse(
       false,

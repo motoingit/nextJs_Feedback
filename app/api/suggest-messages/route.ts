@@ -1,7 +1,6 @@
 import { generateText } from "ai";
 import { google } from "@/lib/gemini";
 import { z } from "zod";
-import chalk from "chalk";
 import { apiResponse } from "@/utils/returnResponse";
 
 //NOTE 📝: Validation schema for prompt query parameter
@@ -20,10 +19,7 @@ const querySchema = z.object({
  * @returns A JSON response containing generated suggestions.
  */
 export async function GET(request: Request): Promise<Response> {
-  console.log(
-    chalk.blue("[API] > "),
-    "GET /api/suggest-messages request received"
-  );
+  console.log("[API] GET /api/suggest-messages request received");
 
   try {
     const { searchParams } = new URL(request.url);
@@ -33,10 +29,7 @@ export async function GET(request: Request): Promise<Response> {
     });
 
     if (!validation.success) {
-      console.warn(
-        chalk.yellow("[WARN] > "),
-        "Prompt validation failed for suggest-messages."
-      );
+      console.warn("[WARN] Prompt validation failed for suggest-messages.");
       return apiResponse(
         false,
         "Validation failed.",
@@ -46,7 +39,7 @@ export async function GET(request: Request): Promise<Response> {
     }
 
     const { prompt } = validation.data;
-    console.log(chalk.gray("[DEBUG]"), `Generating prompt suggestions for: "${prompt}"`);
+    console.log(`[DEBUG] Generating prompt suggestions for: "${prompt}"`);
 
     const { text, usage, finishReason } = await generateText({
       model: google("gemini-2.5-flash"),
@@ -67,10 +60,7 @@ export async function GET(request: Request): Promise<Response> {
       prompt,
     });
 
-    console.info(
-      chalk.greenBright("[SUCCESS] > "),
-      "Successfully generated message suggestions from AI."
-    );
+    console.info("[SUCCESS] Successfully generated message suggestions from AI.");
 
     return apiResponse(
       true,
@@ -84,11 +74,7 @@ export async function GET(request: Request): Promise<Response> {
     );
 
   } catch (error) {
-    console.error(
-      chalk.red("[ERROR] > "),
-      "Fatal error during suggest-messages generation:",
-      error
-    );
+    console.error("[ERROR] Fatal error during suggest-messages generation:", error);
 
     if (error instanceof Error) {
       return apiResponse(false, error.message, 500);

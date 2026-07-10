@@ -1,5 +1,5 @@
+import "@/utils/logger-init";
 import mongoose from "mongoose";
-import chalk from "chalk";
 
 /**
  * Interface representing the cached database connection structure.
@@ -28,29 +28,17 @@ const connectionCache = global.mongoose;
  * @throws An error if the database connection fails.
  */
 async function dbConnect(): Promise<void> {
-  console.log(
-    chalk.blue("[INFO]"),
-    ">",
-    "Checking database connection state..."
-  );
+  console.log("[INFO] Checking database connection state...");
 
   // 1. If connection already exists in global cache, reuse it
   if (connectionCache.conn) {
-    console.log(
-      chalk.green("[SUCCESS]"),
-      ">",
-      "Using cached active MongoDB connection."
-    );
+    console.log("[SUCCESS] Using cached active MongoDB connection.");
     return;
   }
 
   // 2. If no connection promise exists, establish a new one
   if (!connectionCache.promise) {
-    console.log(
-      chalk.blue("[INFO]"),
-      ">",
-      "Establishing new MongoDB connection..."
-    );
+    console.log("[INFO] Establishing new MongoDB connection...");
 
     const mongoUri = process.env.DATABASE_API_KEY;
     if (!mongoUri) {
@@ -63,11 +51,7 @@ async function dbConnect(): Promise<void> {
     };
 
     connectionCache.promise = mongoose.connect(mongoUri, opts).then((m) => {
-      console.log(
-        chalk.green("[SUCCESS]"),
-        ">",
-        "Successfully connected to MongoDB."
-      );
+      console.log("[SUCCESS] Successfully connected to MongoDB.");
       return m;
     });
   }
@@ -78,16 +62,10 @@ async function dbConnect(): Promise<void> {
     // Clear failed promise cache to allow retries on subsequent requests
     connectionCache.promise = null;
 
-    console.error(
-      chalk.red("[ERROR]"),
-      ">",
-      "Failed to connect to MongoDB:"
-    );
+    console.error("[ERROR] Failed to connect to MongoDB:");
 
     console.error(
-      chalk.red(
-        dbConnectionError instanceof Error ? dbConnectionError.stack : String(dbConnectionError)
-      )
+      dbConnectionError instanceof Error ? dbConnectionError.stack : String(dbConnectionError)
     );
 
     throw dbConnectionError;

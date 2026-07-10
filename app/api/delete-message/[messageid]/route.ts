@@ -4,7 +4,6 @@ import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/model/User";
 import { User } from "next-auth"
 import { apiResponse } from "@/utils/returnResponse";
-import chalk from "chalk";
 
 /**
  * ⬇️ DELETE handler to remove a specific message from the user's message array.
@@ -16,10 +15,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ messa
   const { messageid } = await params;
   const messageId = messageid;
   
-  console.log(
-    chalk.blue("[API] > "),
-    "DELETE /api/delete-message/" + messageId + " request received"
-  );
+  console.log(`[API] DELETE /api/delete-message/${messageId} request received`);
 
   await dbConnect();
 
@@ -27,10 +23,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ messa
   const user: User = session?.user as User;
 
   if (!session || !session.user) {
-    console.warn(
-      chalk.yellow("[WARN] > "),
-      "Unauthenticated attempt to delete message."
-    );
+    console.warn("[WARN] Unauthenticated attempt to delete message.");
     return apiResponse(
       false,
       'Not Authenticated',
@@ -45,10 +38,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ messa
     );
 
     if (updatedResult.modifiedCount === 0) {
-      console.warn(
-        chalk.yellow("[WARN] > "),
-        `Delete failed: Message ID "${messageId}" not found for user "${user.username}".`
-      );
+      console.warn(`[WARN] Delete failed: Message ID "${messageId}" not found for user "${user.username}".`);
       return apiResponse(
         false,
         "Message Not Deleted or already deleted",
@@ -56,10 +46,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ messa
       );
     }
 
-    console.info(
-      chalk.greenBright("[SUCCESS] > "),
-      `Successfully deleted message ID "${messageId}" for user "${user.username}".`
-    );
+    console.info(`[SUCCESS] Successfully deleted message ID "${messageId}" for user "${user.username}".`);
 
     return apiResponse(
       true,
@@ -68,11 +55,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ messa
     );
     
   } catch (error) {
-    console.error(
-      chalk.red("[ERROR] > "),
-      "Failed to delete message:",
-      error
-    );
+    console.error("[ERROR] Failed to delete message:", error);
 
     return apiResponse(
       false,

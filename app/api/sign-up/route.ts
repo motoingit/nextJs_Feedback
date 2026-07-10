@@ -2,9 +2,7 @@ import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/model/User";
 import { apiResponse } from "@/utils/returnResponse";
 import sendVerificationEmail from "@/utils/sendVerificationEmail";
-
 import bcrypt from "bcryptjs";
-import chalk from "chalk";
 
 //NOTE 📝: Generate a 6-digit OTP verification code
 const generateOTP = () => {
@@ -21,19 +19,13 @@ const generateOTP = () => {
  * @returns A JSON response indicating if the registration succeeded or failed.
  */
 export async function POST(req: Request) {
-  console.log(
-    chalk.blue("[API] > "),
-    "POST /api/sign-up request received"
-  );
+  console.log("[API] POST /api/sign-up request received");
 
   try {
     await dbConnect();
 
     const { username, email, password } = await req.json();
-    console.log(
-      chalk.gray("[DEBUG]"),
-      `Received sign-up request details: Username="${username}", Email="${email}"`
-    );
+    console.log(`[DEBUG] Received sign-up request details: Username="${username}", Email="${email}"`);
 
     //NOTE 📝: Check if the username is already taken by a verified user
     const existingUserVerifiedByUsername = await UserModel.findOne({
@@ -42,10 +34,7 @@ export async function POST(req: Request) {
     });
 
     if (existingUserVerifiedByUsername) {
-      console.warn(
-        chalk.yellow("[WARN] > "),
-        `Sign-up rejected: Username "${username}" is already taken by a verified user.`
-      );
+      console.warn(`[WARN] Sign-up rejected: Username "${username}" is already taken by a verified user.`);
       return apiResponse(false, 'Username is already taken', 400);
     }
 
@@ -57,10 +46,7 @@ export async function POST(req: Request) {
     });
     
     if (deletedConflicts.deletedCount > 0) {
-      console.log(
-        chalk.gray("[DEBUG]"),
-        `Cleared ${deletedConflicts.deletedCount} unverified conflicting user account(s) using username "${username}"`
-      );
+      console.log(`[DEBUG] Cleared ${deletedConflicts.deletedCount} unverified conflicting user account(s) using username "${username}"`);
     }
 
     //NOTE 📝: Generate verification code and expiry date (1 hour)
@@ -73,17 +59,11 @@ export async function POST(req: Request) {
 
     if (existingUserByEmail) {
       if (existingUserByEmail.isVerified) {
-        console.warn(
-          chalk.yellow("[WARN] > "),
-          `Sign-up rejected: Email "${email}" is already registered and verified.`
-        );
+        console.warn(`[WARN] Sign-up rejected: Email "${email}" is already registered and verified.`);
         return apiResponse(false, 'User already exists with this email', 400);
       } else {
         //NOTE 📝: Update unverified user details with new username, password, and fresh OTP
-        console.log(
-          chalk.gray("[DEBUG]"),
-          `Updating existing unverified user details for email "${email}"`
-        );
+        console.log(`[DEBUG] Updating existing unverified user details for email "${email}"`);
         
         const hashedPassword = await bcrypt.hash(password, 10);
         existingUserByEmail.username = username;
@@ -92,17 +72,11 @@ export async function POST(req: Request) {
         existingUserByEmail.verifyCodeExpiry = expiryDate;
 
         await existingUserByEmail.save();
-        console.info(
-          chalk.greenBright("[SUCCESS] > "),
-          `Successfully updated unverified user "${username}" in the database.`
-        );
+        console.info(`[SUCCESS] Successfully updated unverified user "${username}" in the database.`);
       }
     } else {
       //NOTE 📝: Create a brand new user record for first-time sign-up
-      console.log(
-        chalk.gray("[DEBUG]"),
-        `Creating a new user record for "${username}" (${email})`
-      );
+      console.log(`[DEBUG] Creating a new user record for "${username}" (${email})`);
       
       const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = new UserModel({
@@ -117,17 +91,11 @@ export async function POST(req: Request) {
       });
 
       await newUser.save();
-      console.info(
-        chalk.greenBright("[SUCCESS] > "),
-        `Successfully saved new user "${username}" to the database.`
-      );
+      console.info(`[SUCCESS] Successfully saved new user "${username}" to the database.`);
     }
 
     //NOTE 📝: Dispatch the verification OTP email
-    console.log(
-      chalk.gray("[DEBUG]"),
-      `Dispatched verification flow for "${username}" to email "${email}"`
-    );
+    console.log(`[DEBUG] Dispatched verification flow for "${username}" to email "${email}"`);
     const emailResponse = await sendVerificationEmail(
       email,
       username,
@@ -135,17 +103,11 @@ export async function POST(req: Request) {
     );
 
     if (!emailResponse.success) {
-      console.error(
-        chalk.red("[ERROR] > "),
-        `Verification email dispatch failed: ${emailResponse.message}`
-      );
+      console.error(`[ERROR] Verification email dispatch failed: ${emailResponse.message}`);
       return apiResponse(false, emailResponse.message, 500);
     }
 
-    console.info(
-      chalk.greenBright("[SUCCESS] > "),
-      `User "${username}" successfully registered and verification email sent.`
-    );
+    console.info(`[SUCCESS] User "${username}" successfully registered and verification email sent.`);
     
     return apiResponse(
       true,
@@ -158,19 +120,12 @@ export async function POST(req: Request) {
       error instanceof Error &&
       error.message.includes("E11000 duplicate key error")
     ) {
-      console.warn(
-        chalk.yellow("[WARN] > "),
-        `Duplicate key detected during sign-up: ${error.message}`
-      );
+      console.warn(`[WARN] Duplicate key detected during sign-up: ${error.message}`);
 
       return apiResponse(false, 'Username or email is already in use', 400);
     }
 
-    console.error(
-      chalk.red("[ERROR] > "),
-      "Fatal error during user registration process:",
-      error
-    );
+    console.error("[ERROR] Fatal error during user registration process:", error);
 
     return apiResponse(
       false,
