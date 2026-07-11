@@ -27,7 +27,7 @@ export async function proxy(request: NextRequest) {
 
   // Diagnostic log for every matched route
   console.log(
-    `[Proxy] Checking access. Path: "${url.pathname}" | Authenticated: ${token ? "true" : "false"}`
+    `PROXY; Checking access. Path: "${url.pathname}" | Authenticated: ${token ? "true" : "false"}`
   );
 
   // Redirect to dashboard if the user is already authenticated
@@ -41,7 +41,7 @@ export async function proxy(request: NextRequest) {
     )
   ) {
     console.log(
-      `[Proxy] Redirecting authenticated user on guest route "${url.pathname}" to "/dashboard"`
+      `PROXY; Redirecting authenticated user on guest route "${url.pathname}" to "/dashboard"`
     );
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
@@ -49,7 +49,7 @@ export async function proxy(request: NextRequest) {
   // Redirect to sign-in page if unauthenticated user tries to access dashboard
   if (!token && url.pathname.startsWith('/dashboard')) {
     console.log(
-      `[Proxy] Redirecting unauthenticated user on private route "${url.pathname}" to "/sign-in"`
+      `PROXY; Redirecting unauthenticated user on private route "${url.pathname}" to "/sign-in"`
     );
     return NextResponse.redirect(new URL('/sign-in', request.url));
   }

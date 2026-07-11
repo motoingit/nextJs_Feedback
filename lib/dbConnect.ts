@@ -28,17 +28,14 @@ const connectionCache = global.mongoose;
  * @throws An error if the database connection fails.
  */
 async function dbConnect(): Promise<void> {
-  console.log("[INFO] Checking database connection state...");
-
   // 1. If connection already exists in global cache, reuse it
   if (connectionCache.conn) {
-    console.log("[SUCCESS] Using cached active MongoDB connection.");
     return;
   }
 
   // 2. If no connection promise exists, establish a new one
   if (!connectionCache.promise) {
-    console.log("[INFO] Establishing new MongoDB connection...");
+    console.log("INFO; Establishing new MongoDB connection...");
 
     const mongoUri = process.env.DATABASE_API_KEY;
     if (!mongoUri) {
@@ -50,9 +47,9 @@ async function dbConnect(): Promise<void> {
       bufferCommands: false,
     };
 
-    connectionCache.promise = mongoose.connect(mongoUri, opts).then((m) => {
-      console.log("[SUCCESS] Successfully connected to MongoDB.");
-      return m;
+    connectionCache.promise = mongoose.connect(mongoUri, opts).then((resolvedMongoose) => {
+      console.log("SUCCESS; Successfully connected to MongoDB.");
+      return resolvedMongoose;
     });
   }
 
@@ -62,7 +59,7 @@ async function dbConnect(): Promise<void> {
     // Clear failed promise cache to allow retries on subsequent requests
     connectionCache.promise = null;
 
-    console.error("[ERROR] Failed to connect to MongoDB:");
+    console.error("ERROR; Failed to connect to MongoDB:");
 
     console.error(
       dbConnectionError instanceof Error ? dbConnectionError.stack : String(dbConnectionError)

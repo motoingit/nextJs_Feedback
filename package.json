@@ -8,8 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "dump:users": "tsx scripts/dump-users.ts",
+    "seed:user": "tsx scripts/addUser.ts",
     "clean": "rimraf .next",
-    "reset": "rimraf .next node_modules package-lock.json"
+    "reset": "rimraf .next node_modules"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.10",
@@ -47,6 +48,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
+    "rimraf": "^6.1.3",
     "shadcn": "^4.13.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.0",

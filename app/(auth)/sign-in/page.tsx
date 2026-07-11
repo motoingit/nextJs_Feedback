@@ -17,13 +17,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/shadcn/card";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/shadcn/field";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/shadcn/field";
 import { Input } from "@/components/shadcn/input";
 import { signInSchema } from "@/schemas/signInSchema";
 
-
 export default function Page() {
-
   const router = useRouter();
 
   const form = useForm<z.infer<typeof signInSchema>>({
@@ -35,7 +38,6 @@ export default function Page() {
   });
 
   const onSubmit = async (data: z.infer<typeof signInSchema>) => {
-
     const result = await signIn("credentials", {
       redirect: false, //note: app mat karo redirect hum karlege
       identifier: data.identifier,
@@ -99,7 +101,9 @@ export default function Page() {
 
       <Card className="w-full max-w-md border border-border/60 bg-card/80 backdrop-blur-md shadow-xl rounded-2xl relative z-10">
         <CardHeader className="space-y-1.5">
-          <CardTitle className="text-2xl font-bold tracking-tight text-center">Welcome Back</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight text-center">
+            Welcome Back
+          </CardTitle>
           <CardDescription className="text-center text-sm text-muted-foreground">
             Sign in to continue to True Feedback.
           </CardDescription>
@@ -112,7 +116,7 @@ export default function Page() {
                 name="identifier"
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Email/Username</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>Email/UserName</FieldLabel>
                     <Input
                       {...field}
                       id={field.name}
@@ -149,8 +153,8 @@ export default function Page() {
               />
             </FieldGroup>
 
-            <Button 
-              className="mt-6 w-full font-bold shadow-lg hover:shadow-primary/10 transition-all duration-300" 
+            <Button
+              className="mt-6 w-full font-bold shadow-lg hover:shadow-primary/10 transition-all duration-300"
               type="submit"
             >
               Sign In
@@ -160,7 +164,10 @@ export default function Page() {
         <CardFooter className="flex flex-col items-center justify-center pb-6">
           <p className="text-sm text-muted-foreground">
             Not a member yet?{" "}
-            <Link href="/sign-up" className="font-semibold text-primary hover:underline transition-all">
+            <Link
+              href="/sign-up"
+              className="font-semibold text-primary hover:underline transition-all"
+            >
               Sign up
             </Link>
           </p>

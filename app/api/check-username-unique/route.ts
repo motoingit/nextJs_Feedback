@@ -4,6 +4,7 @@ import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/model/User";
 import { usernameValidation } from "@/schemas/signUpSchema";
 import { apiResponse } from "@/utils/returnResponse";
+import { HTTP_STATUS } from "@/utils/httpStatus";
 
 //NOTE 📝: Validation schema for username query parameter
 const UsernameQuerySchema = z.object({
@@ -18,7 +19,7 @@ const UsernameQuerySchema = z.object({
  * @returns A JSON response indicating if the username is unique or already taken.
  */
 export async function GET(req: Request) {
-  console.log("[API] GET /api/check-username-unique request received");
+  console.log("API; GET /api/check-username-unique request received");
   
   try {
     await dbConnect();
@@ -28,7 +29,7 @@ export async function GET(req: Request) {
       username: searchParams.get('username'),
     };
 
-    console.log(`[DEBUG] Validating username: "${queryParam.username}"`);
+    console.log(`DEBUG; Validating username: "${queryParam.username}"`);
 
     const result = UsernameQuerySchema.safeParse(queryParam);
 
@@ -38,28 +39,28 @@ export async function GET(req: Request) {
         ? usernameErrors.join(", ")
         : 'Invalid query parameters';
       
-      console.warn(`[WARN] Username validation failed: ${errorMessage}`);
+      console.warn(`WARN; Username validation failed: ${errorMessage}`);
       
-      return apiResponse(false, errorMessage, 400);
+      return apiResponse(false, errorMessage, HTTP_STATUS.BAD_REQUEST);
     }
 
     //NOTE 📝: Check if username is already taken by a verified user
     const { username } = result.data;
 
-    console.log(`[DEBUG] Checking database for verified user: "${username}"`);
+    console.log(`DEBUG; Checking database for verified user: "${username}"`);
     const existingVerifiedUser = await UserModel.findOne({ username, isVerified: true });
 
     if (existingVerifiedUser) {
-      console.warn(`[WARN] Username "${username}" is already taken and verified.`);
-      return apiResponse(false, "Username is already taken", 400);
+      console.warn(`WARN; Username "${username}" is already taken and verified.`);
+      return apiResponse(false, "Username is already taken", HTTP_STATUS.CONFLICT);
     }
 
-    console.info(`[SUCCESS] Username "${username}" is unique and available.`);
-    return apiResponse(true, "Username is unique", 200);
+    console.info(`SUCCESS; Username "${username}" is unique and available.`);
+    return apiResponse(true, "Username is unique", HTTP_STATUS.OK);
 
   } catch (error) {
-    console.error("[ERROR] Error checking username uniqueness:", error);
-    return apiResponse(false, "Error checking username", 500);
+    console.error("ERROR; Error checking username uniqueness:", error);
+    return apiResponse(false, "Error checking username", HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
 }
 

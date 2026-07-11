@@ -1,7 +1,11 @@
 import chalk from "chalk";
 
 // Check if we are running in the server environment (Node.js/Next.js server context)
-if (typeof window === "undefined" && !(global as any).__logger_initialized) {
+if (
+  process.env.NODE_ENV === "development" &&
+  typeof window === "undefined" &&
+  !(global as any).__logger_initialized
+) {
   (global as any).__logger_initialized = true;
 
   const originalLog = console.log;
@@ -25,16 +29,52 @@ if (typeof window === "undefined" && !(global as any).__logger_initialized) {
 
     // Standardize status tags with bold background colors
     message = message
-      .replace(/\[SUCCESS\]\s*>?/gi, chalk.bgGreen.black.bold(" SUCCESS "))
-      .replace(/\[ERROR\]\s*>?/gi, chalk.bgRed.white.bold(" ERROR "))
-      .replace(/\[WARN\]\s*>?/gi, chalk.bgYellow.black.bold(" WARN "))
-      .replace(/\[INFO\]\s*>?/gi, chalk.bgBlue.white.bold(" INFO "))
-      .replace(/\[DEBUG\]\s*>?/gi, chalk.bgGray.white.bold(" DEBUG "))
-      .replace(/\[API\]\s*>?/gi, chalk.bgCyan.black.bold(" API "))
-      .replace(/\[AUTH\]\s*>?/gi, chalk.bgMagenta.white.bold(" AUTH "))
-      .replace(/\[Proxy\]\s*>?/gi, chalk.bgCyan.black.bold(" PROXY "))
-      .replace(/🚦\s*\[Proxy\]\s*>?/gi, chalk.bgCyan.black.bold(" PROXY "))
-      .replace(/➡️\s*\[Proxy\]\s*>?/gi, chalk.bgCyan.black.bold(" PROXY "));
+      .replace(
+        /^SUCCESS;/i,
+        chalk.bgGreen.black.bold(" SUCCESS ") +
+          chalk.rgb(255, 105, 180).bold(" > "),
+      )
+
+      .replace(
+        /^ERROR;/i,
+        chalk.bgRed.white.bold(" ERROR ") +
+          chalk.rgb(255, 105, 180).bold(" > "),
+      )
+
+      .replace(
+        /^WARN;/i,
+        chalk.bgYellow.black.bold(" WARN ") +
+          chalk.rgb(255, 105, 180).bold(" > "),
+      )
+
+      .replace(
+        /^INFO;/i,
+        chalk.bgBlue.white.bold(" INFO ") +
+          chalk.rgb(255, 105, 180).bold(" > "),
+      )
+
+      .replace(
+        /^DEBUG;/i,
+        chalk.bgGray.white.bold(" DEBUG ") +
+          chalk.rgb(255, 105, 180).bold(" > "),
+      )
+
+      .replace(
+        /^API;/i,
+        chalk.bgCyan.black.bold(" API ") + chalk.rgb(255, 105, 180).bold(" > "),
+      )
+
+      .replace(
+        /^AUTH;/i,
+        chalk.bgMagenta.white.bold(" AUTH ") +
+          chalk.rgb(255, 105, 180).bold(" > "),
+      )
+
+      .replace(
+        /^PROXY;/i,
+        chalk.bgCyan.black.bold(" PROXY ") +
+          chalk.rgb(255, 105, 180).bold(" > "),
+      );
 
     return [message, "\n"];
   };

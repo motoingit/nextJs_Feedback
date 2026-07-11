@@ -1,9 +1,5 @@
-import React from 'react'
+import React from "react";
 
-const MessagePage = () => {
-  return (
-    <div>MessagePage</div>
-  )
+export default function page() {
+  return <div>page</div>;
 }
-
-export default MessagePage

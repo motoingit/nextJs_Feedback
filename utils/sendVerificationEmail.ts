@@ -23,7 +23,7 @@ export default async function sendVerificationEmail(
     && verifiedTestRecipient.toLowerCase() !== email.toLowerCase() //if present then should not be mohit
   ) {
     const warnMsg = `Resend test mode restricted: target email "${email}" does not match the verified sandbox recipient "${verifiedTestRecipient}".`;
-    console.warn(`[WARN] Email send skipped for free api : ${warnMsg}`);
+    console.warn(`WARN; Email send skipped for free api : ${warnMsg}`);
     return {
       success: false,
       message: warnMsg,
@@ -114,21 +114,21 @@ export default async function sendVerificationEmail(
     });
 
     if (error) {
-      console.error(`[ERROR] Resend API responded with an error for recipient ${email}:`, error);
+      console.error(`ERROR; Resend API responded with an error for recipient ${email}:`, error);
       return {
         success: false,
         message: error.message || 'Unknown error occurred while sending email.',
       };
     }
 
-    console.log(`[SUCCESS] Verification email successfully sent. Response: ${JSON.stringify(data)}`);
+    console.log(`SUCCESS; Verification email successfully sent. Response: ${JSON.stringify(data)}`);
     return {
       success: true,
       message: "Verification email sent successfully.",
     };
 
   } catch (emailError) {
-    console.error(`[ERROR] Unexpected exception thrown during email dispatch to ${email}:`, emailError);
+    console.error(`ERROR; Unexpected exception thrown during email dispatch to ${email}:`, emailError);
     return {
       success: false,
       message: emailError instanceof Error ? emailError.message : String(emailError),

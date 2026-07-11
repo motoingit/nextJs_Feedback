@@ -2,6 +2,7 @@ import { generateText } from "ai";
 import { google } from "@/lib/gemini";
 import { z } from "zod";
 import { apiResponse } from "@/utils/returnResponse";
+import { HTTP_STATUS } from "@/utils/httpStatus";
 
 //NOTE 📝: Validation schema for prompt query parameter
 const querySchema = z.object({
@@ -19,7 +20,7 @@ const querySchema = z.object({
  * @returns A JSON response containing generated suggestions.
  */
 export async function GET(request: Request): Promise<Response> {
-  console.log("[API] GET /api/suggest-messages request received");
+  console.log("API; GET /api/suggest-messages request received");
 
   try {
     const { searchParams } = new URL(request.url);
@@ -29,17 +30,17 @@ export async function GET(request: Request): Promise<Response> {
     });
 
     if (!validation.success) {
-      console.warn("[WARN] Prompt validation failed for suggest-messages.");
+      console.warn("WARN; Prompt validation failed for suggest-messages.");
       return apiResponse(
         false,
         "Validation failed.",
-        400,
+        HTTP_STATUS.BAD_REQUEST,
         validation.error.flatten().fieldErrors
       );
     }
 
     const { prompt } = validation.data;
-    console.log(`[DEBUG] Generating prompt suggestions for: "${prompt}"`);
+    console.log(`DEBUG; Generating prompt suggestions for: "${prompt}"`);
 
     const { text, usage, finishReason } = await generateText({
       model: google("gemini-2.5-flash"),
@@ -60,12 +61,12 @@ export async function GET(request: Request): Promise<Response> {
       prompt,
     });
 
-    console.info("[SUCCESS] Successfully generated message suggestions from AI.");
+    console.info("SUCCESS; Successfully generated message suggestions from AI.");
 
     return apiResponse(
       true,
       "Suggestions generated successfully",
-      200,
+      HTTP_STATUS.OK,
       {
         suggestions: text,
         usage,
@@ -74,12 +75,12 @@ export async function GET(request: Request): Promise<Response> {
     );
 
   } catch (error) {
-    console.error("[ERROR] Fatal error during suggest-messages generation:", error);
+    console.error("ERROR; Fatal error during suggest-messages generation:", error);
 
     if (error instanceof Error) {
-      return apiResponse(false, error.message, 500);
+      return apiResponse(false, error.message, HTTP_STATUS.INTERNAL_SERVER_ERROR);
     }
 
-    return apiResponse(false, "Internal Server Error", 500);
+    return apiResponse(false, "Internal Server Error", HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
 }

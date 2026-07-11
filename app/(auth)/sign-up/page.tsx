@@ -9,7 +9,6 @@ import { Controller, useForm } from "react-hook-form";
 import { useDebounceCallback } from "usehooks-ts";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
@@ -22,6 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/shadcn/card";
+
 import {
   Field,
   FieldDescription,
@@ -29,6 +29,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/shadcn/field";
+
 import { Input } from "@/components/shadcn/input";
 import { signUpSchema } from "@/schemas/signUpSchema";
 import { ApiResponse } from "@/types/ApiResponse";
@@ -37,10 +38,9 @@ import { ApiResponse } from "@/types/ApiResponse";
  * SignUpForm component - handles new user registration layout and validation.
  */
 export default function SignUpForm() {
-
   //NOTE 📝: Component State definitions
-  const [username, setUsername] = useState('');
-  const [usernameMessage, setUsernameMessage] = useState('');
+  const [username, setUsername] = useState("");
+  const [usernameMessage, setUsernameMessage] = useState("");
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const debounced = useDebounceCallback(setUsername, 600);
@@ -58,20 +58,20 @@ export default function SignUpForm() {
   });
 
   //NOTE 📝: Effect hook to check if username is unique dynamically after debounce
-    useEffect(() => {
+  useEffect(() => {
     const checkUsernameUnique = async () => {
       if (username) {
         setIsCheckingUsername(true);
-        setUsernameMessage(''); // Reset message
+        setUsernameMessage(""); // Reset message
         try {
           const response = await axios.get<ApiResponse>(
-            `/api/check-username-unique?username=${username}`
+            `/api/check-username-unique?username=${username}`,
           );
           setUsernameMessage(response.data.message);
         } catch (error) {
           const axiosError = error as AxiosError<ApiResponse>;
           setUsernameMessage(
-            axiosError.response?.data.message ?? 'Error checking username'
+            axiosError.response?.data.message ?? "Error checking username",
           );
         } finally {
           setIsCheckingUsername(false);
@@ -125,7 +125,9 @@ export default function SignUpForm() {
 
       <Card className="w-full max-w-md border border-border/60 bg-card/80 backdrop-blur-md shadow-xl rounded-2xl relative z-10">
         <CardHeader className="space-y-1.5">
-          <CardTitle className="text-2xl font-bold tracking-tight text-center">Create Account</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight text-center">
+            Create Account
+          </CardTitle>
           <CardDescription className="text-center text-sm text-muted-foreground">
             Sign up to start receiving anonymous feedback.
           </CardDescription>
@@ -152,25 +154,29 @@ export default function SignUpForm() {
                           debounced(event.target.value);
                         }}
                       />
-                      
+
                       {isCheckingUsername && (
                         <div className="absolute right-3 top-2 flex items-center">
                           <Loader2 className="animate-spin size-4 text-primary" />
                         </div>
                       )}
-                      
+
                       {usernameMessage && (
-                        <p className={`text-xs font-semibold mt-1 px-0.5 ${
-                          usernameMessage === 'Username is unique' 
-                            ? 'text-emerald-600 dark:text-emerald-400' 
-                            : 'text-rose-600 dark:text-rose-400'
-                        }`}>
+                        <p
+                          className={`text-xs font-semibold mt-1 px-0.5 ${
+                            usernameMessage === "Username is unique"
+                              ? "text-emerald-600 dark:text-emerald-400"
+                              : "text-rose-600 dark:text-rose-400"
+                          }`}
+                        >
                           {usernameMessage}
                         </p>
                       )}
                     </div>
 
-                    <FieldDescription>This is your public display name.</FieldDescription>
+                    <FieldDescription>
+                      This is your public display name.
+                    </FieldDescription>
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
                     )}
@@ -221,9 +227,9 @@ export default function SignUpForm() {
               />
             </FieldGroup>
 
-            <Button 
-              className="mt-6 w-full font-bold shadow-lg hover:shadow-primary/10 transition-all duration-300" 
-              type="submit" 
+            <Button
+              className="mt-6 w-full font-bold shadow-lg hover:shadow-primary/10 transition-all duration-300"
+              type="submit"
               disabled={isSubmitting || isCheckingUsername}
             >
               {isSubmitting ? (
@@ -241,7 +247,10 @@ export default function SignUpForm() {
         <CardFooter className="flex flex-col items-center justify-center pb-6">
           <p className="text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link href="/sign-in" className="font-semibold text-primary hover:underline transition-all">
+            <Link
+              href="/sign-in"
+              className="font-semibold text-primary hover:underline transition-all"
+            >
               Sign in
             </Link>
           </p>

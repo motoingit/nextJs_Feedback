@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { apiResponse } from "@/utils/returnResponse";
+import { HTTP_STATUS } from "@/utils/httpStatus";
 
 import {
   usernameValidation, 
@@ -22,13 +23,13 @@ const verificationCodeQuerySchema = z.object({
  * @returns A JSON response indicating if the verification succeeded or failed.
  */
 export async function POST(req: Request) {
-  console.log("[API] POST /api/verify-code request received");
+  console.log("API; POST /api/verify-code request received");
 
   try {
     await dbConnect();
 
     const body = await req.json();
-    console.log(`[DEBUG] Validating json-payload[username-otp] for : "${body?.username}"`);
+    console.log(`DEBUG; Validating json-payload[username-otp] for : "${body?.username}"`);
 
     const result = verificationCodeQuerySchema.safeParse(body);
 
@@ -43,58 +44,58 @@ export async function POST(req: Request) {
         ? combinedErrors.join(', ')
         : 'Invalid request data';
 
-      console.warn(`[WARN] Request format validation failed: ${errorMessage}`);
+      console.warn(`WARN; Request format validation failed: ${errorMessage}`);
 
-      return apiResponse(false, errorMessage, 400);
+      return apiResponse(false, errorMessage, HTTP_STATUS.BAD_REQUEST);
     }
 
     const { username, code } = result.data;
-    console.log(`[DEBUG] Searching for user: "${username}"`);
+    console.log(`DEBUG; Searching for user: "${username}"`);
 
     const user = await UserModel.findOne({ username });
 
     if (!user) {
-      console.warn(`[WARN] Verification failed: User "${username}" not found.`);
-      return apiResponse(false, "User not found", 404);
+      console.warn(`WARN; Verification failed: User "${username}" not found.`);
+      return apiResponse(false, "User not found", HTTP_STATUS.NOT_FOUND);
     }
 
     //NOTE 📝: if found user then check for code validity and expiry
     const isCodeValid = (user.verifyCode === code);
     const isCodeNotExpired = new Date(user.verifyCodeExpiry) > new Date();
 
-    console.log(`[DEBUG] OTP evaluation: matches=${isCodeValid}, activePeriod=${isCodeNotExpired}`);
+    console.log(`DEBUG; OTP evaluation: matches=${isCodeValid}, activePeriod=${isCodeNotExpired}`);
 
     //NOTE 📝: Account is successfully verified
     if (isCodeValid && isCodeNotExpired) {
       user.isVerified = true;
       await user.save();
 
-      console.info(`[SUCCESS] User "${username}" verified successfully.`);
+      console.info(`SUCCESS; User "${username}" verified successfully.`);
 
-      return apiResponse(true, "Account verified successfully", 200);
+      return apiResponse(true, "Account verified successfully", HTTP_STATUS.OK);
     }
 
     //WARN ⚠️: Verification code has expired
     if (!isCodeNotExpired) {
-      console.warn(`[WARN] Verification failed: Code expired for user "${username}".`);
+      console.warn(`WARN; Verification failed: Code expired for user "${username}".`);
 
       return apiResponse(
         false,
         //REMINDER ⏰: Integrate automatic resend verification email flow here
         "Verification code has expired. Please sign up again to receive a new code.",
-        400
+        HTTP_STATUS.BAD_REQUEST
       );
     }
 
     //WARN ⚠️: Verification code is incorrect
-    console.warn(`[WARN] Verification failed: Incorrect code submitted for user "${username}".`);
+    console.warn(`WARN; Verification failed: Incorrect code submitted for user "${username}".`);
 
-    return apiResponse(false, "Incorrect verification code", 400);
+    return apiResponse(false, "Incorrect verification code", HTTP_STATUS.BAD_REQUEST);
 
   } catch (error) {
-    console.error("[ERROR] Fatal error during verification process:", error);
+    console.error("ERROR; Fatal error during verification process:", error);
 
-    return apiResponse(false, "Error on verifying user", 500);
+    return apiResponse(false, "Error on verifying user", HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
 }
 

@@ -3,6 +3,7 @@ import UserModel from "@/model/User";
 import { apiResponse } from "@/utils/returnResponse";
 import sendVerificationEmail from "@/utils/sendVerificationEmail";
 import bcrypt from "bcryptjs";
+import { HTTP_STATUS } from "@/utils/httpStatus";
 
 //NOTE 📝: Generate a 6-digit OTP verification code
 const generateOTP = () => {
@@ -19,13 +20,14 @@ const generateOTP = () => {
  * @returns A JSON response indicating if the registration succeeded or failed.
  */
 export async function POST(req: Request) {
-  console.log("[API] POST /api/sign-up request received");
+  console.log("API; POST /api/sign-up request received");
 
   try {
     await dbConnect();
 
     const { username, email, password } = await req.json();
-    console.log(`[DEBUG] Received sign-up request details: Username="${username}", Email="${email}"`);
+    
+    console.log(`DEBUG; Received sign-up request details: Username="${username}", Email="${email}"`);
 
     //NOTE 📝: Check if the username is already taken by a verified user
     const existingUserVerifiedByUsername = await UserModel.findOne({
@@ -33,9 +35,10 @@ export async function POST(req: Request) {
       isVerified: true
     });
 
+    //* abhi email-unique ke bare mai mat soch kya pata unverified ho
     if (existingUserVerifiedByUsername) {
-      console.warn(`[WARN] Sign-up rejected: Username "${username}" is already taken by a verified user.`);
-      return apiResponse(false, 'Username is already taken', 400);
+      console.warn(`WARN; Sign-up rejected: Username "${username}" is already taken by a verified user.`);
+      return apiResponse(false, 'Username is already taken', HTTP_STATUS.CONFLICT);
     }
 
     //NOTE 📝: Clear any unverified users holding this username to prevent unique constraint collisions
@@ -46,7 +49,7 @@ export async function POST(req: Request) {
     });
     
     if (deletedConflicts.deletedCount > 0) {
-      console.log(`[DEBUG] Cleared ${deletedConflicts.deletedCount} unverified conflicting user account(s) using username "${username}"`);
+      console.log(`DEBUG; Cleared ${deletedConflicts.deletedCount} unverified conflicting user account(s) using username "${username}"`);
     }
 
     //NOTE 📝: Generate verification code and expiry date (1 hour)
@@ -59,11 +62,11 @@ export async function POST(req: Request) {
 
     if (existingUserByEmail) {
       if (existingUserByEmail.isVerified) {
-        console.warn(`[WARN] Sign-up rejected: Email "${email}" is already registered and verified.`);
-        return apiResponse(false, 'User already exists with this email', 400);
+        console.warn(`WARN; Sign-up rejected: Email "${email}" is already registered and verified.`);
+        return apiResponse(false, 'User already exists with this email', HTTP_STATUS.CONFLICT);
       } else {
         //NOTE 📝: Update unverified user details with new username, password, and fresh OTP
-        console.log(`[DEBUG] Updating existing unverified user details for email "${email}"`);
+        console.log(`DEBUG; Updating existing unverified user details for email "${email}"`);
         
         const hashedPassword = await bcrypt.hash(password, 10);
         existingUserByEmail.username = username;
@@ -72,11 +75,11 @@ export async function POST(req: Request) {
         existingUserByEmail.verifyCodeExpiry = expiryDate;
 
         await existingUserByEmail.save();
-        console.info(`[SUCCESS] Successfully updated unverified user "${username}" in the database.`);
+        console.info(`SUCCESS; Successfully updated unverified user "${username}" in the database.`);
       }
     } else {
       //NOTE 📝: Create a brand new user record for first-time sign-up
-      console.log(`[DEBUG] Creating a new user record for "${username}" (${email})`);
+      console.log(`DEBUG; Creating a new user record for "${username}" (${email})`);
       
       const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = new UserModel({
@@ -91,11 +94,11 @@ export async function POST(req: Request) {
       });
 
       await newUser.save();
-      console.info(`[SUCCESS] Successfully saved new user "${username}" to the database.`);
+      console.info(`SUCCESS; Successfully saved new user "${username}" to the database.`);
     }
 
     //NOTE 📝: Dispatch the verification OTP email
-    console.log(`[DEBUG] Dispatched verification flow for "${username}" to email "${email}"`);
+    console.log(`DEBUG; Dispatched verification flow for "${username}" to email "${email}"`);
     const emailResponse = await sendVerificationEmail(
       email,
       username,
@@ -103,16 +106,16 @@ export async function POST(req: Request) {
     );
 
     if (!emailResponse.success) {
-      console.error(`[ERROR] Verification email dispatch failed: ${emailResponse.message}`);
-      return apiResponse(false, emailResponse.message, 500);
+      console.error(`ERROR; Verification email dispatch failed: ${emailResponse.message}`);
+      return apiResponse(false, emailResponse.message, HTTP_STATUS.INTERNAL_SERVER_ERROR);
     }
 
-    console.info(`[SUCCESS] User "${username}" successfully registered and verification email sent.`);
+    console.info(`SUCCESS; User "${username}" successfully registered and verification email sent.`);
     
     return apiResponse(
       true,
       'User registered successfully. Please verify your email.',
-      201
+      HTTP_STATUS.CREATED
     );
 
   } catch (error) {
@@ -120,19 +123,17 @@ export async function POST(req: Request) {
       error instanceof Error &&
       error.message.includes("E11000 duplicate key error")
     ) {
-      console.warn(`[WARN] Duplicate key detected during sign-up: ${error.message}`);
+      console.warn(`WARN; Duplicate key detected during sign-up: ${error.message}`);
 
-      return apiResponse(false, 'Username or email is already in use', 400);
+      return apiResponse(false, 'Username or email is already in use', HTTP_STATUS.CONFLICT);
     }
 
-    console.error("[ERROR] Fatal error during user registration process:", error);
+    console.error("ERROR; Fatal error during user registration process:", error);
 
     return apiResponse(
       false,
       "Error registering user",
-      500
+      HTTP_STATUS.INTERNAL_SERVER_ERROR
     );
   }
 }
-
-

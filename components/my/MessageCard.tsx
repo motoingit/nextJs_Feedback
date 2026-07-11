@@ -20,7 +20,7 @@ import {
 } from "@/components/shadcn/alert-dialog"
 import { Message } from "@/model/Message"
 import { toast } from "sonner"
-import axios from "axios"
+import axios, { AxiosError, AxiosResponse } from "axios"
 import { ApiResponse } from "@/types/ApiResponse"
 import { Trash2 } from "lucide-react"
 
@@ -29,14 +29,31 @@ type MessageCardProps = {
   onMessageDelete: (messageId: string) => void
 }
 
-export function MessageCard({ message, onMessageDelete }: MessageCardProps) {
+export function MessageCard(props : MessageCardProps) {
+
+  //todo:
+  console.log(props);
+
   const handleDeleteConfirm = async () => {
     try {
-      const res = await axios.delete<ApiResponse>(`/api/delete-message/${message._id}`)
+      const res: AxiosResponse<ApiResponse> = await axios.delete<ApiResponse>(`/api/delete-message/${props.message._id}`)
+
+      if(!res.data.success){
+        toast.error(res.data.message || "Message Cannot be deleted - InternalError");
+        return;
+      }
+      
       toast.success(res.data.message || "Message deleted successfully");
-      onMessageDelete(String(message._id));
+
+      props.onMessageDelete(String(props.message._id));
+
     } catch (error) {
-      toast.error("Failed to delete message");
+        const axiosError = error as AxiosError<ApiResponse>;
+
+        toast.error(
+            axiosError.response?.data.message ??
+            "Failed to delete message"
+        );
     }
   }
 
@@ -45,7 +62,7 @@ export function MessageCard({ message, onMessageDelete }: MessageCardProps) {
       <CardHeader className="p-0 pb-3 flex flex-row items-start justify-between gap-4">
         <div className="space-y-1">
           <CardTitle className="text-base font-semibold leading-relaxed text-foreground break-words">
-            {message.content}
+            {props.message.content}
           </CardTitle>
         </div>
 
@@ -75,7 +92,7 @@ export function MessageCard({ message, onMessageDelete }: MessageCardProps) {
       <CardContent className="p-0 flex items-center justify-between text-xs text-muted-foreground font-medium pt-2 border-t border-border/30">
         <span>Received via link</span>
         <span>
-          {new Date(message.createdAt).toLocaleDateString(undefined, {
+          {new Date(props.message.createdAt).toLocaleDateString(undefined, {
             month: 'short',
             day: 'numeric',
             year: 'numeric',

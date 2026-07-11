@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
        */
       //REMINDER : Type the credentials parameter strictly if appropriate
       async authorize(credentials: any): Promise<any> {
-        console.log(`[AUTH] Authorization request initiated for identifier: "${credentials?.identifier}"`);
+        console.log(`AUTH; Authorization request initiated for identifier: "${credentials?.identifier}"`);
         
         try {
           await dbConnect();
@@ -42,28 +42,28 @@ export const authOptions: NextAuthOptions = {
 
           //NOTE : if user is not in database
           if (!user) {
-            console.warn(`[WARN] User not found for identifier: "${credentials.identifier}"`);
+            console.warn(`WARN; User not found for identifier: "${credentials.identifier}"`);
             throw new Error("No User Found with this Email or Username");
           }
           
           //if user is not verified
           if (!user.isVerified) {
-            console.warn(`[WARN] User is not verified: "${credentials.identifier}"`);
+            console.warn(`WARN; User is not verified: "${credentials.identifier}"`);
             throw new Error("Please verify your account first");
           }
 
           const isPasswordCorrect = await bcrypt.compare(credentials.password, user.password);
 
           if (isPasswordCorrect) {
-            console.info(`[SUCCESS] Successfully authenticated user: "${user.username}" (ID: ${user._id})`);
+            console.info(`SUCCESS; Successfully authenticated user: "${user.username}" (ID: ${user._id})`);
             return user;
           } else {
-            console.warn(`[WARN] Password mismatch for user: "${user.username}"`);
+            console.warn(`WARN; Password mismatch for user: "${user.username}"`);
             throw new Error("Incorrect Password");
           }
 
         } catch (error: any) {
-          console.error("[ERROR] Error during authorization process:", error);
+          console.error("ERROR; Error during authorization process:", error);
           //NOTE 📝: Propagate error message to NextAuth
           throw new Error(error.message || "Authentication error occurred");
         }

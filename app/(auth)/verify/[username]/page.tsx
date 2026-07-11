@@ -22,7 +22,7 @@ import {
   FieldLabel,
 } from "@/components/shadcn/field";
 import { Input } from "@/components/shadcn/input";
-import { verifySchema } from "@/schemas/verifySchema";
+import { verifySchema } from "@/schemas/verifyCodeSchema";
 import { ApiResponse } from "@/types/ApiResponse";
 import { toast } from "sonner";
 
@@ -38,8 +38,7 @@ export default function VerifyAccount() {
   });
 
   const onSubmit = async (data: z.infer<typeof verifySchema>) => {
-
-    //log for 
+    //log for
     toast("You submitted the following values:", {
       description: (
         <pre className="mt-2 w-[320px] overflow-x-auto rounded-md bg-code p-4 text-code-foreground">
@@ -53,7 +52,7 @@ export default function VerifyAccount() {
       style: {
         "--border-radius": "calc(var(--radius)  + 4px)",
       } as React.CSSProperties,
-    })
+    });
 
     try {
       const res = await axios.post(`/api/verify-code`, {
@@ -67,7 +66,7 @@ export default function VerifyAccount() {
 
       router.replace("/sign-in");
     } catch (error) {
-      console.error("[ERROR]: Error in verification of User", error);
+      console.error("ERROR; Error in verification of User", error);
 
       const axiosError = error as AxiosError<ApiResponse>;
       const description =
@@ -91,7 +90,9 @@ export default function VerifyAccount() {
 
       <Card className="w-full max-w-md border border-border/60 bg-card/80 backdrop-blur-md shadow-xl rounded-2xl relative z-10">
         <CardHeader className="space-y-1.5">
-          <CardTitle className="text-2xl font-bold tracking-tight text-center">Verify Your Account</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight text-center">
+            Verify Your Account
+          </CardTitle>
           <CardDescription className="text-center text-sm text-muted-foreground">
             Enter the verification code sent to your email.
           </CardDescription>
@@ -125,16 +126,16 @@ export default function VerifyAccount() {
             </FieldGroup>
           </CardContent>
           <CardFooter className="flex items-center gap-3 pb-6">
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="flex-1" 
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
               onClick={() => form.reset()}
             >
               Reset
             </Button>
-            <Button 
-              className="flex-[2] font-bold shadow-lg hover:shadow-primary/10 transition-all duration-300" 
+            <Button
+              className="flex-[2] font-bold shadow-lg hover:shadow-primary/10 transition-all duration-300"
               type="submit"
             >
               Verify
