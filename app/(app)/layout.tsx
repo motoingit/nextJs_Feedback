@@ -1,5 +1,11 @@
 import Navbar from '@/components/my/Navbar';
 import React from 'react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Dashboard | True Feedback',
+  description: 'Manage your anonymous feedback inbox, toggle status, and view suggested prompts.',
+};
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (

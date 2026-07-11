@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import { Button } from "@/components/shadcn/button"
+import { Button } from "@/components/shadcn/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@/components/shadcn/card"
+} from "@/components/shadcn/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,45 +17,46 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/shadcn/alert-dialog"
-import { Message } from "@/model/Message"
-import { toast } from "sonner"
-import axios, { AxiosError, AxiosResponse } from "axios"
-import { ApiResponse } from "@/types/ApiResponse"
-import { Trash2 } from "lucide-react"
+} from "@/components/shadcn/alert-dialog";
+import { Message } from "@/model/Message";
+import { toast } from "sonner";
+import axios, { AxiosError, AxiosResponse } from "axios";
+import { ApiResponse } from "@/types/ApiResponse";
+import { Trash2 } from "lucide-react";
 
 type MessageCardProps = {
   message: Message;
-  onMessageDelete: (messageId: string) => void
-}
+  onMessageDelete: (messageId: string) => void;
+};
 
-export function MessageCard(props : MessageCardProps) {
-
+export function MessageCard(props: MessageCardProps) {
   //todo:
   console.log(props);
 
   const handleDeleteConfirm = async () => {
     try {
-      const res: AxiosResponse<ApiResponse> = await axios.delete<ApiResponse>(`/api/delete-message/${props.message._id}`)
+      const res: AxiosResponse<ApiResponse> = await axios.delete<ApiResponse>(
+        `/api/delete-message/${props.message._id}`,
+      );
 
-      if(!res.data.success){
-        toast.error(res.data.message || "Message Cannot be deleted - InternalError");
+      if (!res.data.success) {
+        toast.error(
+          res.data.message || "Message Cannot be deleted - InternalError",
+        );
         return;
       }
-      
+
       toast.success(res.data.message || "Message deleted successfully");
 
       props.onMessageDelete(String(props.message._id));
-
     } catch (error) {
-        const axiosError = error as AxiosError<ApiResponse>;
+      const axiosError = error as AxiosError<ApiResponse>;
 
-        toast.error(
-            axiosError.response?.data.message ??
-            "Failed to delete message"
-        );
+      toast.error(
+        axiosError.response?.data.message ?? "Failed to delete message",
+      );
     }
-  }
+  };
 
   return (
     <Card className="w-full border border-border/60 bg-card/60 backdrop-blur-sm shadow-sm rounded-2xl p-5 hover:shadow-md transition-all duration-300 flex flex-col justify-between">
@@ -67,40 +68,50 @@ export function MessageCard(props : MessageCardProps) {
         </div>
 
         <AlertDialog>
-          <AlertDialogTrigger render={
-            <Button variant="destructive" size="xs" className="shrink-0 p-2 h-8 w-8 flex items-center justify-center rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 border-none shadow-none">
-              <Trash2 className="size-4" />
-            </Button>
-          } />
+          <AlertDialogTrigger
+            render={
+              <Button
+                variant="destructive"
+                size="xs"
+                className="shrink-0 p-2 h-8 w-8 flex items-center justify-center rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 border-none shadow-none"
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            }
+          />
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Message?</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to permanently delete this anonymous feedback message? This action cannot be undone.
+                Are you sure you want to permanently delete this anonymous
+                feedback message? This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              <AlertDialogAction
+                onClick={handleDeleteConfirm}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
       </CardHeader>
-      
+
       <CardContent className="p-0 flex items-center justify-between text-xs text-muted-foreground font-medium pt-2 border-t border-border/30">
         <span>Received via link</span>
         <span>
           {new Date(props.message.createdAt).toLocaleDateString(undefined, {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
           })}
         </span>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,15 +1,17 @@
-import Navbar from "@/components/my/Navbar";
-import React from "react";
+import type { Metadata } from "next";
 
-export default function InputMessageLayout({
-  children,
+export async function generateMetadata({
+  params,
 }: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <Navbar />
-      <main className="flex-grow flex flex-col">{children}</main>
-    </div>
-  );
+  params: Promise<{ username: string }>;
+}): Promise<Metadata> {
+  const { username } = await params;
+  return {
+    title: `Send Feedback to @${username} | True Feedback`,
+    description: `Send anonymous feedback, questions, or comments to @${username} on True Feedback.`,
+  };
+}
+
+export default function UserLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }
