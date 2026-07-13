@@ -6,23 +6,17 @@ import { Loader2 } from "lucide-react";
 import FeedbackForm from "@/components/FeedbackForm";
 import UserNotFound from "@/components/my/UserNotFound";
 import { ApiResponse } from "@/types/ApiResponse";
-import { z } from "zod";
 
 interface InputMessagePageProps {
   params: Promise<{ username: string }>;
 }
 
-//TODO
-const userStatusResponseSchema = z.object({
-  success: z.boolean(),
-  message: z.string(),
-  data: z
-    .object({
-      exists: z.boolean(),
-      isAcceptingMessage: z.boolean(),
-    })
-    .optional(),
-});
+type UserStatusResponse = ApiResponse & {
+  data?: {
+    exists: boolean;
+    isAcceptingMessage: boolean;
+  };
+};
 
 /**
  * Client-Side Page Component to check recipient profile status and load the feedback form.
@@ -38,21 +32,15 @@ export default function InputMessagePage(props: InputMessagePageProps) {
   useEffect(() => {
     const fetchUserStatus = async () => {
       try {
-        const response = await axios.get<ApiResponse>(
+        const response = await axios.get<UserStatusResponse>(
           `/api/get-user-status?username=${username}`,
         );
 
-        const parseResult = userStatusResponseSchema.safeParse(response.data);
-
-        if (
-          parseResult.success &&
-          parseResult.data.success &&
-          parseResult.data.data?.exists
-        ) {
+        if (response.data.success && response.data.data?.exists) {
           setUserExists(true);
-          setIsAcceptingMessage(parseResult.data.data.isAcceptingMessage);
+          setIsAcceptingMessage(response.data.data.isAcceptingMessage);
         }
-      } catch (error) {
+      } catch {
         setUserExists(false);
       } finally {
         setIsLoading(false);
@@ -83,7 +71,6 @@ export default function InputMessagePage(props: InputMessagePageProps) {
 
   // Active Form State
   return (
-    //note: {} for variable and class === className it dont give any errror
     <FeedbackForm
       receiverUsername={username}
       initialAcceptingMessages={isAcceptingMessage}

@@ -24,7 +24,7 @@
  * ============================================================================
  */
 
-type ApiResponse<T = undefined> = {
+interface ApiResponse<T = undefined> {
   /**
    * Indicates whether the request completed successfully.
    */

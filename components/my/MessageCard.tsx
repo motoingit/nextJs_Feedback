@@ -30,9 +30,7 @@ type MessageCardProps = {
 };
 
 export function MessageCard(props: MessageCardProps) {
-  //todo:
-  console.log(props);
-
+  
   const handleDeleteConfirm = async () => {
     try {
       const res: AxiosResponse<ApiResponse> = await axios.delete<ApiResponse>(

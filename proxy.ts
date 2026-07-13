@@ -20,7 +20,6 @@ export async function proxy(request: NextRequest) {
   // Retrieve user session token (JWT)
   const token = await getToken({
     req: request,
-    //TODO : is this right
     secret: process.env.NEXTAUTH_SECRET,
   });
   const url = request.nextUrl;
@@ -37,7 +36,6 @@ export async function proxy(request: NextRequest) {
     (url.pathname.startsWith("/sign-in") ||
       url.pathname.startsWith("/sign-up") ||
       url.pathname.startsWith("/verify"))
-    //warn || url.pathname === '/' // Add this line for landing page
   ) {
     console.log(
       `PROXY; Redirecting authenticated user on guest route "${url.pathname}" to "/dashboard"`,

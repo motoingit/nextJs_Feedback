@@ -1,13 +1,17 @@
 import { z } from "zod";
 
 //warn: this usernameValidation is not modular + it
+//note: /^[a-zA-Z][a-zA-Z0-9_]*$/
 
 //* username validation zod object
 export const usernameValidation = z
   .string()
-  .min(2, "Username must be at least 2 characters")
-  .max(20, "Username must be no more than 20 characters")
-  .regex(/^[a-zA-Z0-9_]+$/, "Username must not contain special characters");
+  .min(1, "Username must not Be Empty")
+  .max(10, "Username must be no more than 10 characters")
+  .regex(
+    /^[a-zA-Z][a-zA-Z0-9_]*$/,
+    "Username must not contain special characters",
+  );
 
 //* email validation zod object
 export const emailValidation = z.email();

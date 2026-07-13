@@ -34,8 +34,6 @@ export default function Dashboard() {
   const [isSwitchLoading, setIsSwitchLoading] = useState(true);
 
   const handleDeleteMessage = (messageId: string) => {
-    //todo: can we do optimisation
-    //* return setMessage the same arrahy with (message.id != delteId)
     setMessages(
       messages.filter((message) => String(message._id) !== messageId),
     );
@@ -106,7 +104,8 @@ export default function Dashboard() {
     if (!session || !session.user) {
       return;
     }
-    //TODO
+
+    //quite
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMessages();
     fetchAcceptMessage();

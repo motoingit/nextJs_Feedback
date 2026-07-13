@@ -5,7 +5,7 @@ import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shadUtil";
 import { Button } from "@/components/shadcn/button";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
@@ -95,7 +95,7 @@ function Carousel({
 
   React.useEffect(() => {
     if (!api) return;
-    //TODO
+    //quite
     // eslint-disable-next-line react-hooks/set-state-in-effect
     onSelect(api);
     api.on("reInit", onSelect);

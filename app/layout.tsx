@@ -4,7 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/shadcn/sonner";
 import AuthProvider from "../context/AuthProvider";
 import { Geist } from "next/font/google";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shadUtil";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -19,7 +19,6 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    //WARN - suppressHydrationWarning due to nextjs dynamic theme which is not part of nextjs 14
     <html lang="en" className={cn("font-sans", geist.variable)}>
       <AuthProvider>
         <body className="font-sans antialiased bg-slate-50 dark:bg-slate-950">

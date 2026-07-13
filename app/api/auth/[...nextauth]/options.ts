@@ -6,11 +6,18 @@ import bcrypt from "bcryptjs";
 
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/model/User";
+import { comparePassword } from "@/utils/passwordManager";
+
+interface UserCredentials {
+  identifier?: string;
+  password?: string;
+}
 
 //NOTE 📝: NextAuth options configuration and provider setup
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
+      //todo hardcoded
       id: "credentials",
       name: "Credentials",
       credentials: {
@@ -25,7 +32,7 @@ export const authOptions: NextAuthOptions = {
        * @param credentials - User credentials passed from the sign-in form.
        * @returns The user object if authentication succeeds, otherwise throws an error.
        */
-      //REMINDER : Type the credentials parameter strictly if appropriate
+      //todo: check for crential.json for better type
       async authorize(credentials: any): Promise<any> {
         console.log(
           `AUTH; Authorization request initiated for identifier: "${credentials?.identifier}"`,
@@ -59,10 +66,9 @@ export const authOptions: NextAuthOptions = {
             throw new Error("Please verify your account first");
           }
 
-          const isPasswordCorrect = await bcrypt.compare(
-            credentials.password,
-            user.password,
-          );
+          console.log(`mongodb= ${user.password}`)
+          console.log(`local= ${credentials.password}`)
+          const isPasswordCorrect = await comparePassword(credentials.password, user.password);
 
           if (isPasswordCorrect) {
             console.info(

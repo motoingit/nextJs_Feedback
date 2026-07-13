@@ -1,9 +1,10 @@
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/model/User";
 import { apiResponse } from "@/utils/returnResponse";
-import sendVerificationEmail from "@/utils/sendVerificationEmail";
-import bcrypt from "bcryptjs";
+import sendVerificationEmail from "@/lib/sendVerificationEmail";
+
 import { HTTP_STATUS } from "@/utils/httpStatus";
+import { makePassword } from "@/utils/passwordManager";
 
 //NOTE 📝: Generate a 6-digit OTP verification code
 const generateOTP = () => {
@@ -68,7 +69,7 @@ export async function POST(req: Request) {
         //NOTE 📝: Update unverified user details with new username, password, and fresh OTP
         console.log(`DEBUG; Updating existing unverified user details for email "${email}"`);
         
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await makePassword(password);
         existingUserByEmail.username = username;
         existingUserByEmail.password = hashedPassword;
         existingUserByEmail.verifyCode = verifyCode;
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
       //NOTE 📝: Create a brand new user record for first-time sign-up
       console.log(`DEBUG; Creating a new user record for "${username}" (${email})`);
       
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await makePassword(password);
       const newUser = new UserModel({
         username,
         email,

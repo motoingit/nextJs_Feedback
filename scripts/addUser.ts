@@ -5,6 +5,7 @@ import path from "node:path";
 
 import dbConnect from "@/lib/dbConnect";
 import User from "@/model/User";
+import { makePassword } from "@/utils/passwordManager";
 
 type SeedUser = {
   username: string;
@@ -105,8 +106,8 @@ async function seed({ username, email, password }: SeedUser) {
       isVerified: false,
     });
 
-    // Hash password, TODO: 10 is used there also
-    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const hashedPassword = await makePassword(password);
 
     // Create verified user
     const newUser = await User.create({

@@ -38,21 +38,6 @@ export default function VerifyAccount() {
   });
 
   const onSubmit = async (data: z.infer<typeof verifySchema>) => {
-    //log for
-    toast("You submitted the following values:", {
-      description: (
-        <pre className="mt-2 w-[320px] overflow-x-auto rounded-md bg-code p-4 text-code-foreground">
-          <code>{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-      position: "bottom-right",
-      classNames: {
-        content: "flex flex-col gap-2",
-      },
-      style: {
-        "--border-radius": "calc(var(--radius)  + 4px)",
-      } as React.CSSProperties,
-    });
 
     try {
       const res = await axios.post(`/api/verify-code`, {

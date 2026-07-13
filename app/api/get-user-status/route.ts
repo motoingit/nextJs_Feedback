@@ -33,10 +33,14 @@ export async function GET(req: Request) {
       return apiResponse(false, "User not found", HTTP_STATUS.NOT_FOUND);
     }
 
-    return apiResponse(true, "User status retrieved", HTTP_STATUS.OK, {
-      exists: true,
-      isAcceptingMessage: user.isAcceptingMessage,
+    return apiResponse(
+      true, 
+      "User status retrieved", 
+      HTTP_STATUS.OK, 
+      { exists: true,
+        isAcceptingMessage: user.isAcceptingMessage,
     });
+    
   } catch (error) {
     console.error("ERROR; Failed to get user status:", error);
     return apiResponse(false, "Internal Server Error", HTTP_STATUS.INTERNAL_SERVER_ERROR);

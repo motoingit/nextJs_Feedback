@@ -38,6 +38,7 @@ export default function Page() {
   });
 
   const onSubmit = async (data: z.infer<typeof signInSchema>) => {
+    //todo hardcoded
     const result = await signIn("credentials", {
       redirect: false, //note: app mat karo redirect hum karlege
       identifier: data.identifier,

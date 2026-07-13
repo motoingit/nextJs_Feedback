@@ -1,8 +1,13 @@
-import {z} from "zod"
-
+import { z } from "zod";
+import {
+  usernameValidation,
+  emailValidation,
+  passwordValidation,
+} from "./signUpSchema";
 
 export const signInSchema = z.object({
   //identifier is same as username
-  identifier: z.string(),
-  password: z.string(),
-})
+  //note: when need both validation
+  identifier: usernameValidation.or(emailValidation),
+  password: passwordValidation,
+});
