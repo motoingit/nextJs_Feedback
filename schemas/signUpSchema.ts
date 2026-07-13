@@ -1,12 +1,13 @@
-import {z} from 'zod'
+import { z } from "zod";
 
+//warn: this usernameValidation is not modular + it
 
 //* username validation zod object
 export const usernameValidation = z
   .string()
-  .min(2, 'Username must be at least 2 characters')
-  .max(20, 'Username must be no more than 20 characters')
-  .regex(/^[a-zA-Z0-9_]+$/, 'Username must not contain special characters');
+  .min(2, "Username must be at least 2 characters")
+  .max(20, "Username must be no more than 20 characters")
+  .regex(/^[a-zA-Z0-9_]+$/, "Username must not contain special characters");
 
 //* email validation zod object
 export const emailValidation = z.email();
@@ -21,21 +22,18 @@ export const passwordValidation = z
   .max(20, { message: "Password must be no more than 20 characters" });
 
 // * codeOTP validation zod object
-export const verificationCodeValidation = z
-  .string()
-  .length(6, { //! hardcoded otp
-    message: "Verification code must be exactly 6 digits",
-  });
-
+export const verificationCodeValidation = z.string().length(6, {
+  //! hardcoded otp
+  message: "Verification code must be exactly 6 digits",
+});
 
 //MAIN Validation
-export const signUpSchema = z
-  .object({
-    username: usernameValidation,
-    email: emailValidation,
-    password: passwordValidation,
-  })
-  // .refine((data) => data.password === data.confirmPassword, {
-  //   message: "Passwords do not match",
-  //   path: ["confirmPassword"],
-  // });
+export const signUpSchema = z.object({
+  username: usernameValidation,
+  email: emailValidation,
+  password: passwordValidation,
+});
+// .refine((data) => data.password === data.confirmPassword, {
+//   message: "Passwords do not match",
+//   path: ["confirmPassword"],
+// });

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, use } from "react";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
-import FeedbackForm from "./FeedbackForm";
+import FeedbackForm from "@/components/FeedbackForm";
 import UserNotFound from "@/components/my/UserNotFound";
 import { ApiResponse } from "@/types/ApiResponse";
 import { z } from "zod";
@@ -83,6 +83,7 @@ export default function InputMessagePage(props: InputMessagePageProps) {
 
   // Active Form State
   return (
+    //note: {} for variable and class === className it dont give any errror
     <FeedbackForm
       receiverUsername={username}
       initialAcceptingMessages={isAcceptingMessage}

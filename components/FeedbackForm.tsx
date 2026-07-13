@@ -23,6 +23,7 @@ const PRESET_PROMPTS = [
   "If you had to describe me in three words, what would they be and why?",
 ];
 
+//note: receiverUsername = "defualt value"
 export default function FeedbackForm({ receiverUsername, initialAcceptingMessages }: FeedbackFormProps) {
   const { data: session } = useSession();
   const [content, setContent] = useState("");

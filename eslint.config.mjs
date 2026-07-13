@@ -12,14 +12,14 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "tsconfig.tsbuildinfo",
   ]),
-
 
   // Your custom rules
   {
     rules: {
       "@typescript-eslint/no-explicit-any": "warn",
-      // "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-unused-vars": "warn",
     },
   },
 ]);
