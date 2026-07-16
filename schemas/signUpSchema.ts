@@ -9,7 +9,7 @@ export const usernameValidation = z
   .min(1, "Username must not Be Empty")
   .max(10, "Username must be no more than 10 characters")
   .regex(
-    /^[a-zA-Z][a-zA-Z0-9_]*$/,
+    /^[a-zA-Z0-9._]+$/,
     "Username must not contain special characters",
   );
 

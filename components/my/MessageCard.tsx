@@ -22,7 +22,8 @@ import { Message } from "@/model/Message";
 import { toast } from "sonner";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { ApiResponse } from "@/types/ApiResponse";
-import { Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 type MessageCardProps = {
   message: Message;
@@ -30,8 +31,11 @@ type MessageCardProps = {
 };
 
 export function MessageCard(props: MessageCardProps) {
-  
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const handleDeleteConfirm = async () => {
+    setIsDeleting(true);
+
     try {
       const res: AxiosResponse<ApiResponse> = await axios.delete<ApiResponse>(
         `/api/delete-message/${props.message._id}`,
@@ -53,6 +57,8 @@ export function MessageCard(props: MessageCardProps) {
       toast.error(
         axiosError.response?.data.message ?? "Failed to delete message",
       );
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -89,9 +95,19 @@ export function MessageCard(props: MessageCardProps) {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDeleteConfirm}
+                disabled={isDeleting}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                Delete
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="size-4" /> Delete
+                  </>
+                )}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

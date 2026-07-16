@@ -29,6 +29,7 @@ export async function POST(req: Request) {
     await dbConnect();
 
     const body = await req.json();
+
     console.log(`DEBUG; Validating json-payload[username-otp] for : "${body?.username}"`);
 
     const result = verificationCodeQuerySchema.safeParse(body);

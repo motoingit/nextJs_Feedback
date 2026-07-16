@@ -37,9 +37,11 @@ export async function GET(req: Request) {
       true, 
       "User status retrieved", 
       HTTP_STATUS.OK, 
-      { exists: true,
+      { //Data
+        exists: true,
         isAcceptingMessage: user.isAcceptingMessage,
-    });
+      }
+    );
     
   } catch (error) {
     console.error("ERROR; Failed to get user status:", error);
